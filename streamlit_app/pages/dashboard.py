@@ -550,7 +550,7 @@ st.sidebar.title("Admin Panel")
 
 menu = st.sidebar.radio(
     "Select View:",
-    ["Dashboard", "Add Patients", "Patient List", "Start Patient Follow-Up", "Patient Feedback", "Logout"],
+    ["Dashboard", "Add Patients", "Patient List", "Start Patient Follow-Up", "Patient Feedback","Analytics","Appointments", "Logout"],
     label_visibility="visible",
 )
 
@@ -1135,75 +1135,220 @@ elif menu == "Patient Feedback":
         with tb3:
             st.info("Here comes the patient medication details")
 
-    # st.subheader("📊 Hospital Analytics")
-    # st.write("Visual insights and performance overview")
-    #
-    # col1, col2, col3 = st.columns(3)
-    #
-    # with col1:
-    #     st.markdown(
-    #         """
-    #         <div class="metric-card">
-    #             <img src="https://cdn-icons-png.flaticon.com/512/4320/4320371.png" width="60">
-    #             <div class="metric-label">Total Patients</div>
-    #             <div class="metric-value">7</div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-    # with col2:
-    #     st.markdown(
-    #         """
-    #         <div class="metric-card">
-    #             <img src="https://cdn-icons-png.flaticon.com/512/2966/2966489.png" width="60">
-    #             <div class="metric-label">Medication Logs</div>
-    #             <div class="metric-value">5</div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-    #
-    # with col3:
-    #     st.markdown(
-    #         """
-    #         <div class="metric-card">
-    #             <img src="https://cdn-icons-png.flaticon.com/512/7249/7249210.png" width="60">
-    #             <div class="metric-label">Alerts</div>
-    #             <div class="metric-value">3</div>
-    #         </div>
-    #         """, unsafe_allow_html=True)
-    #
-    # st.markdown("---")
-    # st.markdown('<h3 style="color: #14b8a6; margin-top: 40px;">📈 Insights Overview</h3>', unsafe_allow_html=True)
-    # col_left, col_right = st.columns(2)
-    #
-    # # Pie Chart - Follow-up Status
-    # labels = ["Negative", "Positive", "Neutral"]
-    # sizes = np.random.randint(10, 50, size=3)
-    #
-    # with col_left:
-    #     st.subheader("Follow-up Status")
-    #     fig1, ax1 = plt.subplots(facecolor='#0a1e2b')
-    #     ax1.set_facecolor('#0a1e2b')
-    #     colors = ['#14b8a6', '#06b6d4', '#a7f3d0']
-    #     ax1.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors,
-    #             textprops={'color': '#e8f5f7', 'fontsize': 12, 'weight': 'bold'})
-    #     ax1.axis('equal')
-    #     st.pyplot(fig1)
-    #
-    # # Bar Chart - Medication Adherence
-    # categories = ["Follow", "Partial", "Discontinued"]
-    # values = np.random.randint(10, 100, size=3)
-    #
-    # with col_right:
-    #     st.subheader("Medication Adherence Rate")
-    #     fig2, ax2 = plt.subplots(facecolor='#0a1e2b')
-    #     ax2.set_facecolor('#0a1e2b')
-    #     bars = ax2.bar(categories, values, color=["#14b8a6", "#06b6d4", "#a7f3d0"])
-    #     ax2.set_ylabel("Number of Patients", color='#e8f5f7', fontweight='bold')
-    #     ax2.tick_params(axis='x', colors='#e8f5f7')
-    #     ax2.tick_params(axis='y', colors='#e8f5f7')
-    #     ax2.spines['bottom'].set_color('#14b8a6')
-    #     ax2.spines['left'].set_color('#14b8a6')
-    #     ax2.spines['top'].set_visible(False)
-    #     ax2.spines['right'].set_visible(False)
-    #     st.pyplot(fig2)
+elif menu == "Appointments":
+    st.title("📅 Confirmed Appointments")
+
+    confirmed_tab, past_tab = st.tabs([
+        "Upcoming Appointments", "Past Appointments"
+    ])
+
+    with confirmed_tab:
+        st.subheader("Upcoming Confirmed Appointments")
+        try:
+            # Fetch appointments with default view='active'
+            res = requests.get(f"{API_URL}/appointments", params={"view": "active"})
+            if res.status_code == 200:
+                active_appointments = res.json()
+                if not active_appointments:
+                    st.info("No upcoming confirmed appointments found.")
+                else:
+                    # Display using DataFrame for simplicity
+                    df_active = pd.DataFrame(active_appointments)
+                    st.dataframe(df_active[['patient_name', 'appointment_date', 'appointment_time', 'department','status']])
+            else:
+                st.error(f"Failed to fetch active appointments: {res.text}")
+        except Exception as e:
+            st.error(f"Error connecting to appointments API: {e}")
+
+    with past_tab:
+        st.subheader("Past Appointments History")
+        try:
+            # Fetch appointments with view='past'
+            res = requests.get(f"{API_URL}/appointments", params={"view": "past"})
+            if res.status_code == 200:
+                past_appointments = res.json()
+                if not past_appointments:
+                    st.info("No past appointment history found.")
+                else:
+                    df_past = pd.DataFrame(past_appointments)
+                    st.dataframe(
+                        df_past[['patient_name', 'appointment_date', 'appointment_time', 'department', 'status']])
+            else:
+                st.error(f"Failed to fetch past appointments: {res.text}")
+        except Exception as e:
+            st.error(f"Error fetching past appointments: {e}")
+
+
+elif menu == "Analytics":
+
+    total_patients = "N/A"
+    total_engaged = "N/A"
+    total_alerts = "N/A"
+    alert_delta_text = None
+    alert_delta_color = "normal"
+
+    # --- Fetch Metrics ---
+    try:
+        # Get total patients count
+        patients_res = requests.get(f"{API_URL}/patient")
+        if patients_res.status_code == 200:
+            total_patients = len(patients_res.json())
+        else:
+            st.warning("Could not fetch total patient count.")
+
+        # Get engagement and alert metrics
+        metrics_res = requests.get(f"{API_URL}/patient/metrics")
+        if metrics_res.status_code == 200:
+            metrics_data = metrics_res.json()
+            total_engaged = metrics_data.get('total_patients_engaged', 0)
+            total_alerts = metrics_data.get('total_flagged_alerts', 0)
+            if total_alerts > 0:
+                alert_delta_text = f"{total_alerts} High Priority"
+                alert_delta_color = "inverse"  # Makes delta red
+        else:
+            st.warning("Could not fetch dashboard metrics.")
+
+    except Exception as e:
+        st.error(f"Error connecting to API: {e}")
+    # --- End Fetch Metrics ---
+
+    st.subheader("📊 Key Metrics")  # Changed subheader
+    # st.write("Visual insights and performance overview") # Optional text
+
+    # --- Display Dynamic Metric Cards ---
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown(
+            f"""
+                    <div class="metric-card">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4320/4320371.png" width="60">
+                        <div class="metric-label">Total Patients</div>
+                        <div class="metric-value">{total_patients}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    with col2:
+        # Using a phone/call icon for engaged
+        st.markdown(
+            f"""
+                    <div class="metric-card">
+                        <img src="https://cdn-icons-png.flaticon.com/512/455/455705.png" width="60">
+                        <div class="metric-label">Patients Engaged</div>
+                        <div class="metric-value">{total_engaged}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+    with col3:
+        # Using the existing alert icon
+        st.markdown(
+            f"""
+                    <div class="metric-card">
+                        <img src="https://cdn-icons-png.flaticon.com/512/7249/7249210.png" width="60">
+                        <div class="metric-label">Active Alerts</div>
+                        <div class="metric-value">{total_alerts}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        # Optionally add the delta text below the card if needed,
+        # st.metric doesn't integrate well with custom HTML cards
+        # if alert_delta_text:
+        #     st.markdown(f"<p style='text-align:center; color: #ef4444;'>{alert_delta_text}</p>", unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown('<h3 style="color: #14b8a6; margin-top: 40px;">📈 Insights Overview</h3>', unsafe_allow_html=True)
+    col_left, col_right = st.columns(2)
+
+    call_records = []
+    try:
+        records_res = requests.get(f"{API_URL}/patient/call-records")
+        if records_res.status_code == 200:
+            call_records = records_res.json()
+        else:
+            st.warning("Could not fetch call records for charts.")
+    except Exception as e:
+        st.error(f"Error connecting to API for call records: {e}")
+
+    # --- Generate Charts ---
+    col_left, col_right = st.columns(2)
+
+    # 1. Sentiment Pie Chart
+    with col_left:
+        st.subheader("Follow-up Sentiment")
+        fig1, ax1 = plt.subplots(facecolor='#0a1e2b')  # Keep background styling
+        ax1.set_facecolor('#0a1e2b')
+
+        if call_records:
+            sentiments = [record.get('overall_sentiment', 'NEUTRAL') for record in call_records]
+            sentiment_counts = Counter(sentiments)
+
+            # Ensure order and presence of all categories
+            labels = ["POSITIVE", "NEUTRAL", "ALERT"]
+            sizes = [sentiment_counts.get(label, 0) for label in labels]
+            colors = ['#06b6d4', '#a7f3d0', '#044954']
+
+            # Filter out zero-value slices to avoid display issues
+            non_zero_labels = [label for i, label in enumerate(labels) if sizes[i] > 0]
+            non_zero_sizes = [size for size in sizes if size > 0]
+            non_zero_colors = [color for i, color in enumerate(colors) if sizes[i] > 0]
+
+            if non_zero_sizes:  # Only plot if there's data
+                ax1.pie(non_zero_sizes, labels=non_zero_labels, autopct='%1.1f%%', startangle=90,
+                        colors=non_zero_colors,
+                        textprops={'color': '#e8f5f7', 'fontsize': 12, 'weight': 'bold'})
+                ax1.axis('equal')
+            else:
+                ax1.text(0.5, 0.5, 'No Sentiment Data', horizontalalignment='center', verticalalignment='center',
+                         color='#e8f5f7')
+                ax1.axis('off')  # Hide axes if no data
+        else:
+            ax1.text(0.5, 0.5, 'No Call Records Found', horizontalalignment='center', verticalalignment='center',
+                     color='#e8f5f7')
+            ax1.axis('off')  # Hide axes if no data
+
+        st.pyplot(fig1)
+
+    # 2. Adherence Bar Chart
+    with col_right:
+        st.subheader("Medication Adherence")
+        fig2, ax2 = plt.subplots(facecolor='#0a1e2b')
+        ax2.set_facecolor('#0a1e2b')
+
+        if call_records:
+            # Get the CLASSIFIED adherence status directly
+            adherence_statuses = [
+                record.get('medical_adherence', 'UNCLEAR')  # Default to UNCLEAR if missing
+                for record in call_records
+            ]
+            adherence_counts = Counter(adherence_statuses)
+
+            # Define categories based on the classification output
+            categories = ["ADHERENT", "NON-ADHERENT", "UNCLEAR"]
+            values = [adherence_counts.get(cat, 0) for cat in categories]
+            bar_colors = ["#14b8a6", "#044954", "#a7f3d0"]
+
+            if any(v > 0 for v in values):  # Only plot if there's data
+                bars = ax2.bar(categories, values, color=bar_colors)
+                ax2.set_ylabel("Number of Patients", color='#e8f5f7', fontweight='bold')
+                ax2.tick_params(axis='x', colors='#e8f5f7')
+                ax2.tick_params(axis='y', colors='#e8f5f7')
+                ax2.spines['bottom'].set_color('#14b8a6')
+                ax2.spines['left'].set_color('#14b8a6')
+                ax2.spines['top'].set_visible(False)
+                ax2.spines['right'].set_visible(False)
+                ax2.bar_label(bars, color='#e8f5f7', padding=3)  # Add counts on top
+            else:
+                ax2.text(0.5, 0.5, 'No Adherence Data', transform=ax2.transAxes,  # Use axes coordinates
+                         horizontalalignment='center',
+                         verticalalignment='center',
+                         color='#e8f5f7')
+                ax2.axis('off')
+        else:
+            ax2.text(0.5, 0.5, 'No Call Records Found', transform=ax2.transAxes,  # Use axes coordinates
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     color='#e8f5f7')
+            ax2.axis('off')
+
+        st.pyplot(fig2)
 
 elif menu == "Logout":
     st.session_state.clear()
