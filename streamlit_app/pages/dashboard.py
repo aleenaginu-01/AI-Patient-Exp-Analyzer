@@ -766,9 +766,13 @@ elif menu == "Dashboard":
 
         if call_records:
             # Get the CLASSIFIED adherence status directly
-            adherence_statuses = [
-                record.get('medical_adherence', 'UNCLEAR') # Default to UNCLEAR if missing
+            adherence_statuses_raw = [
+                record.get('medical_adherence', 'NOT_ASKED') # Default to UNCLEAR if missing
                 for record in call_records
+            ]
+            adherence_statuses = [
+                "UNCLEAR" if status == "NOT_ASKED" else status
+                for status in adherence_statuses_raw
             ]
             adherence_counts = Counter(adherence_statuses)
 
@@ -977,7 +981,7 @@ elif menu == "Patient List":
 
 elif menu == "Start Patient Follow-Up":
     st.subheader("📞 Start Patient Follow-Up")
-    res = requests.get(f"{API_URL}/patient/")
+    res = requests.get(f"{API_URL}/patient/pending-followup-patients")
     patients = res.json()
     name_pres = [pat["name"] for pat in patients if "name" in pat]
 
@@ -1314,9 +1318,13 @@ elif menu == "Analytics":
 
         if call_records:
             # Get the CLASSIFIED adherence status directly
-            adherence_statuses = [
-                record.get('medical_adherence', 'UNCLEAR')  # Default to UNCLEAR if missing
+            adherence_statuses_raw = [
+                record.get('medical_adherence', 'NOT_ASKED')  # Default to UNCLEAR if missing
                 for record in call_records
+            ]
+            adherence_statuses = [
+                "UNCLEAR" if status == "NOT_ASKED" else status
+                for status in adherence_statuses_raw
             ]
             adherence_counts = Counter(adherence_statuses)
 
