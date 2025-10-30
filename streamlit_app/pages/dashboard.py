@@ -1142,6 +1142,11 @@ elif menu == "Patient Feedback":
 elif menu == "Appointments":
     st.title("📅 Confirmed Appointments")
 
+    # Define the column layout
+    # [Patient Name, Department, Date, Time, Status]
+    column_weights = [3, 2.5, 2, 1.5, 2]
+    column_headers = ["Patient Name", "Department", "Date", "Time", "Status"]
+
     confirmed_tab, past_tab = st.tabs([
         "Upcoming Appointments", "Past Appointments"
     ])
@@ -1149,16 +1154,32 @@ elif menu == "Appointments":
     with confirmed_tab:
         st.subheader("Upcoming Confirmed Appointments")
         try:
-            # Fetch appointments with default view='active'
             res = requests.get(f"{API_URL}/appointments", params={"view": "active"})
             if res.status_code == 200:
                 active_appointments = res.json()
                 if not active_appointments:
                     st.info("No upcoming confirmed appointments found.")
                 else:
-                    # Display using DataFrame for simplicity
-                    df_active = pd.DataFrame(active_appointments)
-                    st.dataframe(df_active[['patient_name', 'appointment_date', 'appointment_time', 'department','status']])
+                    # --- Create Header Row ---
+                    st.divider()
+                    header_cols = st.columns(column_weights)
+                    for i, header in enumerate(column_headers):
+                        header_cols[i].markdown(f"**{header}**")
+                    st.divider()
+
+                    # --- Create Data Rows ---
+                    for appt in active_appointments:
+                        cols = st.columns(column_weights)
+                        cols[0].write(appt.get('patient_name', 'N/A'))
+                        cols[1].write(appt.get('department', 'N/A'))
+                        cols[2].write(appt.get('appointment_date', 'N/A'))
+                        cols[3].write(appt.get('appointment_time', 'N/A'))
+                        status = appt.get('status', 'N/A')
+                        if status == "Confirmed":
+                            cols[4].markdown(f"✅ **{status}**")
+                        else:
+                            cols[4].write(status)
+
             else:
                 st.error(f"Failed to fetch active appointments: {res.text}")
         except Exception as e:
@@ -1167,16 +1188,32 @@ elif menu == "Appointments":
     with past_tab:
         st.subheader("Past Appointments History")
         try:
-            # Fetch appointments with view='past'
             res = requests.get(f"{API_URL}/appointments", params={"view": "past"})
             if res.status_code == 200:
                 past_appointments = res.json()
                 if not past_appointments:
                     st.info("No past appointment history found.")
                 else:
-                    df_past = pd.DataFrame(past_appointments)
-                    st.dataframe(
-                        df_past[['patient_name', 'appointment_date', 'appointment_time', 'department', 'status']])
+                    # --- Create Header Row ---
+                    st.divider()
+                    header_cols = st.columns(column_weights)
+                    for i, header in enumerate(column_headers):
+                        header_cols[i].markdown(f"**{header}**")
+                    st.divider()
+
+                    # --- Create Data Rows ---
+                    for appt in past_appointments:
+                        cols = st.columns(column_weights)
+                        cols[0].write(appt.get('patient_name', 'N/A'))
+                        cols[1].write(appt.get('department', 'N/A'))
+                        cols[2].write(appt.get('appointment_date', 'N/A'))
+                        cols[3].write(appt.get('appointment_time', 'N/A'))
+                        status = appt.get('status', 'N/A')
+                        # Status here will be 'Visited' based on DB logic
+                        if status == "Visited":
+                            cols[4].markdown(f"✔️ {status}")
+                        else:
+                            cols[4].write(status)
             else:
                 st.error(f"Failed to fetch past appointments: {res.text}")
         except Exception as e:
