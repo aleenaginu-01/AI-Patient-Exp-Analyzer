@@ -613,22 +613,28 @@ if menu == "Add Patients":
         next_visit_date = st.date_input("Next Visit Datee", value=date.today())
         submitted = st.form_submit_button("Add Patient")
         if submitted:
-            prescribed_medication = [pm.strip() for pm in pre_medi.split(",") if pm.strip()]
-            patient_data = {
-                "name": name,
-                "age": age,
-                "gender": gender,
-                "phone": phone,
-                "disease": disease,
-                "visit_date": str(visit_date),
-                "prescribed_medication": prescribed_medication,
-                "next_visit_date": str(next_visit_date),
-            }
-            response = requests.post(API_URL + "/patient", json=patient_data)
-            if response.status_code in (200, 201):
-                st.success(f"Patient {name} added successfully!")
+            if not name.strip() or not phone.strip() or not disease.strip() or not pre_medi.strip() or age == 0:
+                st.error("⚠️ All fields are required. Please fill in all details and set a valid age.")
             else:
-                st.error(f"Error adding patient {response.text}")
+                prescribed_medication = [pm.strip() for pm in pre_medi.split(",") if pm.strip()]
+                patient_data = {
+                    "name": name,
+                    "age": age,
+                    "gender": gender,
+                    "phone": phone,
+                    "disease": disease,
+                    "visit_date": str(visit_date),
+                    "prescribed_medication": prescribed_medication,
+                    "next_visit_date": str(next_visit_date),
+                }
+                try:
+                    response = requests.post(API_URL + "/patient", json=patient_data)
+                    if response.status_code in (200, 201):
+                        st.success(f"Patient {name} added successfully!")
+                    else:
+                        st.error(f"Error adding patient {response.text}")
+                except Exception as e:
+                    st.error(f"Error connecting to API: {e}")
 
 elif menu == "Dashboard":
     st.title("Admin Dashboard")
