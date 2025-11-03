@@ -12,10 +12,10 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 API_URL = os.getenv("API_URL")
-CALL_API_URL=os.getenv("CALL_API_URL")
+CALL_API_URL = os.getenv("CALL_API_URL")
 
 
-
+# --- HELPER FUNCTIONS (Unchanged) ---
 def calculate_duration(start_iso: str, end_iso: str) -> str:
     """Calculates duration between two ISO 8601 timestamps."""
     try:
@@ -32,41 +32,45 @@ def calculate_duration(start_iso: str, end_iso: str) -> str:
         print(f"Error calculating duration: {e}")
         return "N/A"
 
+
 def get_sentiment_emoji(sentiment: str) -> str:
     """Returns an emoji for the sentiment string."""
     if sentiment == "POSITIVE":
         return "✅"
     if sentiment == "ALERT":
-        return "🚩" # Red flag for alerts
+        return "🚩"  # Red flag for alerts
     if sentiment == "NEGATIVE":
-        return "❌" # Should be rare, as it's covered by ALERT
+        return "❌"  # Should be rare, as it's covered by ALERT
     return "➖"
+
 
 def get_adherence_emoji(adherence: str) -> str:
     """Returns an emoji for the adherence classification."""
     if adherence == "ADHERENT":
-        return "✅" # Checkmark
+        return "✅"  # Checkmark
     if adherence == "NON-ADHERENT":
-        return "⚠️" # Warning sign
-    return "❓" # Question mark for Unclear
-# --- END HELPER ---
+        return "⚠️"  # Warning sign
+    return "❓"  # Question mark for Unclear
 
-# --- (2) NEW HELPER FOR SIDE EFFECTS EMOJI ---
+
 def get_side_effects_display(reported: bool) -> str:
     """Returns an emoji and text for side effects status."""
     if reported:
-        return "❗ Reported" # Exclamation for reported
+        return "❗ Reported"  # Exclamation for reported
     return "➖ None Reported"
+
+
+# --- END HELPER ---
 
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
 
-# Enhanced CSS with professional styling
+# --- REFACTORED CSS: Light Hospital Theme ---
 hide_default_format = """
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         * {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         /* Hide Streamlit branding */
@@ -78,36 +82,34 @@ hide_default_format = """
 
         /* Main App Background */
         .stApp {
-            background: linear-gradient(135deg, #0a1e2b 0%, #0f2027 50%, #203a43 100%);
-            color: #e8f5f7;
+            background-color: #c2ffec;
+            color: #333333;
         }
 
         /* Sidebar Styling */
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0d1b2a 0%, #1b263b 100%);
-            border-right: 2px solid #14b8a6;
+            background-color:#b9f0de;
+            border-right: 1px solid #E0E0E0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-            color: #a7f3d0;
+            color: #1A2B4D;
         }
 
         /* Sidebar Header */
         [data-testid="stSidebar"] h1 {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-size: 28px !important;
             font-weight: 700 !important;
             text-align: center;
             padding: 20px 0;
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 2s ease-in-out infinite;
+            margin-bottom: 10px;
         }
 
         /* Sidebar Radio Buttons */
         [data-testid="stSidebar"] .stRadio > label {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-weight: 600 !important;
             font-size: 16px !important;
             margin-bottom: 15px !important;
@@ -117,27 +119,38 @@ hide_default_format = """
             gap: 8px;
         }
 
+        /* Styling the individual radio option labels */
         [data-testid="stSidebar"] .stRadio label {
-            background: rgba(20, 184, 166, 0.1);
+            background: #d4faf1;
             padding: 14px 20px;
             border-radius: 10px;
             transition: all 0.3s ease;
             border: 1px solid transparent;
-            color: #a7f3d0 !important;
+            color: #333333 !important;
             font-size: 15px !important;
             display: block;
             width: 100%;
         }
 
         [data-testid="stSidebar"] .stRadio label:hover {
-            background: rgba(20, 184, 166, 0.2);
-            border: 1px solid #14b8a6;
+            background: #9ae6d4;
+            border-color: #112e27;
             transform: translateX(5px);
+            color: #0056B3 !important;
         }
+
+        /* This selector targets the label of the *checked* radio button */
+        [data-testid="stSidebar"] .stRadio div[data-checked="true"] label {
+            background-color: #007BFF !important;
+            color: #FFFFFF !important;
+            border-color: #0056B3 !important;
+            font-weight: 500;
+        }
+
 
         /* Main Header */
         h1, h2, h3 {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-weight: 600 !important;
         }
 
@@ -145,13 +158,13 @@ hide_default_format = """
             font-size: 42px !important;
             text-align: center;
             margin-bottom: 10px !important;
-            text-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
             animation: fadeInDown 0.8s ease;
         }
 
         h2 {
             font-size: 28px !important;
             margin-top: 30px !important;
+            color: #245444 !important;
         }
 
         h3 {
@@ -160,15 +173,13 @@ hide_default_format = """
 
         /* Subheader styling */
         .stMarkdownContainer h3 {
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #007BFF !important;
             font-weight: 600;
         }
 
         /* Buttons */
         .stButton > button {
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            background: linear-gradient(135deg, #007BFF 0%, #0056B3 100%);
             color: white !important;
             border: none;
             border-radius: 10px;
@@ -176,211 +187,224 @@ hide_default_format = """
             font-weight: 600;
             font-size: 15px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
         }
 
         .stButton > button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(20, 184, 166, 0.5);
-            background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+            box-shadow: 0 6px 25px rgba(0, 123, 255, 0.3);
+            background: linear-gradient(135deg, #0056B3 0%, #004085 100%);
         }
 
-        # In your dashboard.py hide_default_format CSS, replace the Input Fields section with:
+        /* --- LIGHT THEME INPUT FIELDS --- */
 
-        /* Input Fields */
+        /* Text/Number/Textarea Inputs */
         .stTextInput > div > div > input,
         .stNumberInput > div > div > input,
         .stTextArea textarea {
-            background: rgba(20, 184, 166, 0.05) !important;
-            border: 1px solid #14b8a6 !important;
-            border-radius: 8px !important;
-            color: #e8f5f7 !important;
+            background-color: #FFFFFF !important;
+            border: 1.5px solid #CED4DA !important;
+            border-radius: 10px !important;
+            color: #333333 !important;
             padding: 10px !important;
         }
 
         /* Selectbox Container */
         .stSelectbox {
-            color: #e8f5f7 !important;
+            color: #FFFFFF !important;
         }
 
         /* Selectbox Input Wrapper */
         .stSelectbox > div > div {
-            background: rgba(20, 184, 166, 0.05) !important;
-            border: 1px solid #14b8a6 !important;
-            border-radius: 8px !important;
+            background: #FFFFFF !important;
+            border: 1.5px solid #CED4DA !important;
+            border-radius: 10px !important;
         }
 
         /* Selectbox - the actual select element */
         .stSelectbox select {
-            background: rgba(20, 184, 166, 0.05) !important;
-            color: #e8f5f7 !important;
+            background: #FFFFFF !important;
+            color: #333333 !important;
             border: none !important;
         }
 
         /* Selectbox - BaseWeb Select component */
         .stSelectbox div[data-baseweb="select"] {
-            background: rgba(20, 184, 166, 0.05) !important;
+            background: #FFFFFF !important;
         }
 
         /* Selectbox - Selected value container */
         .stSelectbox div[data-baseweb="select"] > div {
-            background: rgba(20, 184, 166, 0.05) !important;
-            border: 1px solid #14b8a6 !important;
-            border-radius: 8px !important;
+            background: #FFFFFF !important;
+            border: none !important; /* Managed by wrapper */
+            border-radius: 10px !important;
         }
 
         /* Selectbox - Selected value text */
         .stSelectbox div[data-baseweb="select"] > div > div {
-            color: #e8f5f7 !important;
+            color: #333333 !important;
         }
 
         /* Selectbox - All text inside */
         .stSelectbox * {
-            color: #e8f5f7 !important;
+            color: #333333 !important;
         }
 
         /* Selectbox dropdown menu */
         div[data-baseweb="popover"] {
-            background: #1b263b !important;
+            background: #FFFFFF !important;
+            border: 1px solid #CED4DA !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         /* Selectbox dropdown list */
         ul[role="listbox"] {
-            background: #1b263b !important;
-            border: 1px solid #14b8a6 !important;
+            background: #FFFFFF !important;
         }
 
         /* Selectbox dropdown options */
         li[role="option"] {
-            background: #1b263b !important;
-            color: #e8f5f7 !important;
+            background: #FFFFFF !important;
+            color: #333333 !important;
         }
 
         /* Selectbox dropdown options hover */
         li[role="option"]:hover {
-            background: rgba(20, 184, 166, 0.2) !important;
-            color: #14b8a6 !important;
+            background: #F1F3F5 !important;
+            color: #1A2B4D !important;
         }
 
         /* Selectbox dropdown selected option */
         li[role="option"][aria-selected="true"] {
-            background: rgba(20, 184, 166, 0.3) !important;
-            color: #14b8a6 !important;
-        }
-
-        .stTextInput > div > div > input:focus,
-        .stNumberInput > div > div > input:focus,
-        .stSelectbox > div > div:focus-within,
-        .stTextArea textarea:focus {
-            border: 2px solid #06b6d4 !important;
-            box-shadow: 0 0 10px rgba(20, 184, 166, 0.3) !important;
+            background: #E0E7FF !important;
+            color: #0056B3 !important;
         }
 
         /* Date Input Styling */
         .stDateInput > div > div {
-            background: rgba(20, 184, 166, 0.05) !important;
-            border: 1px solid #14b8a6 !important;
-            border-radius: 8px !important;
+            background: #FFFFFF !important;
+            border: 1.5px solid #CED4DA !important;
+            border-radius: 10px !important;
         }
 
         .stDateInput input {
-            background: rgba(20, 184, 166, 0.05) !important;
-            color: #e8f5f7 !important;
+            background: #FFFFFF !important;
+            color: #333333 !important;
             border: none !important;
         }
 
         /* Date picker calendar styling */
         .stDateInput div[data-baseweb="calendar"] {
-            background: #1b263b !important;
-            border: 1px solid #14b8a6 !important;
+            background: #FFFFFF !important;
+            border: 1px solid #CED4DA !important;
         }
 
         /* Calendar dates */
         .stDateInput button {
-            color: #e8f5f7 !important;
+            color: #333333 !important;
         }
 
         /* Calendar selected date */
         .stDateInput button[aria-selected="true"] {
-            background: #14b8a6 !important;
+            background: #007BFF !important;
             color: white !important;
         }
 
         /* Calendar hover */
         .stDateInput button:hover {
-            background: rgba(20, 184, 166, 0.2) !important;
+            background: #E0E7FF !constants;
         }
+
+        /* Input Focus State */
+        .stTextInput > div > div > input:focus,
+        .stNumberInput > div > div > input:focus,
+        .stSelectbox > div > div:focus-within,
+        .stTextArea textarea:focus,
+        .stDateInput > div > div:focus-within {
+            border-color: #007BFF !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15) !important;
+        }
+
         /* Labels */
         .stTextInput > label,
         .stNumberInput > label,
         .stSelectbox > label,
         .stDateInput > label,
         .stTextArea > label {
-            color: #a7f3d0 !important;
+            color: #1A2B4D !important;
             font-weight: 500 !important;
             font-size: 15px !important;
         }
 
+        /* --- END LIGHT THEME INPUTS --- */
+
+
         /* Cards & Containers */
         .stContainer {
-            background: rgba(20, 184, 166, 0.05);
-            border: 1px solid rgba(20, 184, 166, 0.2);
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
             border-radius: 15px;
             padding: 20px;
             margin: 10px 0;
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
         .stContainer:hover {
-            border-color: #14b8a6;
-            box-shadow: 0 5px 20px rgba(20, 184, 166, 0.2);
+            border-color: #007BFF;
+            box-shadow: 0 5px 20px rgba(0, 123, 255, 0.1);
         }
 
         /* DataFrames */
         .stDataFrame {
-            border: 1px solid #14b8a6;
+            border: 1px solid #DEE2E6;
             border-radius: 10px;
             overflow: hidden;
         }
 
         /* Success/Error/Warning Messages */
         .stSuccess {
-            background: rgba(20, 184, 166, 0.1) !important;
-            border-left: 4px solid #14b8a6 !important;
-            color: #a7f3d0 !important;
+            background-color: #D4EDDA !important;
+            color: #155724 !important;
+            border: 1px solid #C3E6CB !important;
         }
 
         .stError {
-            background: rgba(239, 68, 68, 0.1) !important;
-            border-left: 4px solid #ef4444 !important;
+            background-color: #F8D7DA !important;
+            color: #721C24 !important;
+            border: 1px solid #F5C6CB !important;
         }
 
         .stWarning {
-            background: rgba(251, 191, 36, 0.1) !important;
-            border-left: 4px solid #fbbf24 !important;
+            background-color: #FFF3CD !important;
+            color: #856404 !important;
+            border: 1px solid #FFEAA7 !important;
         }
 
         .stInfo {
-            background: rgba(6, 182, 212, 0.1) !important;
-            border-left: 4px solid #06b6d4 !important;
-            color: #a7f3d0 !important;
+            background-color: #D1ECF1 !important;
+            color: #0C5460 !important;
+            border: 1px solid #BEE5EB !important;
         }
 
         /* Divider */
         hr {
             border: none;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #CED4DA, transparent);
             margin: 30px 0;
         }
 
         /* File Uploader */
         [data-testid="stFileUploader"] {
-            background: rgba(20, 184, 166, 0.05);
-            border: 2px dashed #14b8a6;
+            background: #F8F9FA;
+            border: 2px dashed #007BFF;
             border-radius: 10px;
             padding: 20px;
+        }
+        [data-testid="stFileUploader"] * {
+            color: #333333;
         }
 
         /* Tabs */
@@ -389,14 +413,14 @@ hide_default_format = """
         }
 
         .stTabs [data-baseweb="tab"] {
-            background: rgba(20, 184, 166, 0.1);
+            background: #E9ECEF;
             border-radius: 8px;
-            color: #a7f3d0;
+            color: #5A6A7B;
             padding: 10px 20px;
         }
 
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            background: #007BFF;
             color: white;
         }
 
@@ -417,20 +441,15 @@ hide_default_format = """
             }
         }
 
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(20, 184, 166, 0.5); }
-            50% { text-shadow: 0 0 20px rgba(20, 184, 166, 0.8); }
-        }
-
         /* Custom metric cards */
         .metric-card {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border: 1px solid rgba(20, 184, 166, 0.3);
-            color: #e8f5f7;
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            color: #245444;
             text-align: center;
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
             margin: 10px;
             animation: fadeIn 0.6s ease;
@@ -438,15 +457,15 @@ hide_default_format = """
 
         .metric-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 8px 25px rgba(20, 184, 166, 0.4);
-            border-color: #14b8a6;
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+            border-color: #245444;
         }
 
         .metric-label {
             font-size: 16px;
             font-weight: 500;
             margin-top: 15px;
-            color: #a7f3d0;
+            color: #245444;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -454,22 +473,21 @@ hide_default_format = """
         .metric-value {
             font-size: 36px;
             font-weight: 700;
-            color: #14b8a6;
-            text-shadow: 0 0 10px rgba(20, 184, 166, 0.3);
+            color: #245444;
         }
 
         /* Chat box styling */
         .chat-box {
-            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 100%);
-            border: 1px solid #14b8a6;
+            background: #F8F9FA;
+            border: 1px solid #DEE2E6;
             border-radius: 15px;
             padding: 20px;
             height: 400px;
             overflow-y: auto;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 15px;
-            color: #e8f5f7;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            color: #333333;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .message {
@@ -479,50 +497,53 @@ hide_default_format = """
             width: fit-content;
             max-width: 75%;
             animation: fadeIn 0.4s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .ai {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
-            color: #a7f3d0;
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            color: #333333;
             text-align: left;
-            border-left: 3px solid #14b8a6;
+            border-left: 3px solid #007BFF;
         }
 
         .user {
-            background: linear-gradient(135deg, rgba(167, 243, 208, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%);
-            color: #e8f5f7;
-            text-align: right;
+            background: #E0E7FF;
+            color: #1A2B4D;
+            text-align: left; /* Keep left align for readability */
             margin-left: auto;
-            border-right: 3px solid #06b6d4;
+            border-right: 3px solid #0056B3;
         }
 
         /* Vision/Mission cards */
         .vision-card {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+            background: #FFFFFF;
             padding: 30px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(20, 184, 166, 0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #E0E0E0;
             transition: all 0.4s ease;
             animation: fadeIn 0.8s ease;
+            height: 100%; /* Make cards same height */
         }
 
         .vision-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 12px 35px rgba(20, 184, 166, 0.4);
-            border-color: #14b8a6;
+            box-shadow: 0 12px 35px rgba(0, 123, 255, 0.15);
+            border-color: #245444;
         }
 
         .vision-card h4 {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-size: 22px !important;
             font-weight: 600 !important;
             margin: 15px 0 !important;
         }
 
         .vision-card p {
-            color: #a7f3d0 !important;
+            color: #5A6A7B !important;
             font-size: 15px !important;
             line-height: 1.6 !important;
         }
@@ -540,7 +561,34 @@ hide_default_format = """
             padding: 8px 0 !important;
             margin: 5px 0 !important;
         }
-    </style>
+        [data-testid="stMetric"] {
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+    [data-testid="stMetric"]:hover {
+        border-color: #007BFF;
+        box-shadow: 0 5px 20px rgba(0, 123, 255, 0.1);
+    }
+    
+    /* This styles the LABEL (e.g., "Overall Sentiment") */
+    [data-testid="stMetricLabel"] {
+        color: #5A6A7B !important; /* Dark grey, legible label */
+        font-size: 16px;
+        font-weight: 500;
+    }
+    
+    /* This styles the VALUE (e.g., "✅ POSITIVE") */
+    [data-testid="stMetricValue"] {
+        color: #1A2B4D !important; /* Darkest, primary value color */
+        font-size: 28px;
+        font-weight: 600;
+    }
+        </style>
 """
 st.markdown(hide_default_format, unsafe_allow_html=True)
 
@@ -550,7 +598,8 @@ st.sidebar.title("Admin Panel")
 
 menu = st.sidebar.radio(
     "Select View:",
-    ["Dashboard", "Add Patients", "Patient List", "Start Patient Follow-Up", "Patient Feedback","Analytics","Appointments", "Logout"],
+    ["Dashboard", "Add Patients", "Patient List", "Start Patient Follow-Up", "Patient Feedback", "Analytics",
+     "Appointments", "Logout"],
     label_visibility="visible",
 )
 
@@ -606,11 +655,9 @@ if menu == "Add Patients":
         gender = st.selectbox("Gender", ["Male", "Female"], index=0)
         phone = st.text_input("Phone Number")
         disease = st.text_input("Disease / Condition")
-        # visit_date = st.text_input("Visit Date")
         visit_date = st.date_input("Visit Date", value=date.today())
-        pre_medi = st.text_input("Prescribed Medication")
-        # next_visit_date = st.text_input("Next Visit Date")
-        next_visit_date = st.date_input("Next Visit Datee", value=date.today())
+        pre_medi = st.text_input("Prescribed Medication (comma-separated)")
+        next_visit_date = st.date_input("Next Visit Date", value=date.today())
         submitted = st.form_submit_button("Add Patient")
         if submitted:
             if not name.strip() or not phone.strip() or not disease.strip() or not pre_medi.strip() or age == 0:
@@ -638,7 +685,6 @@ if menu == "Add Patients":
 
 elif menu == "Dashboard":
     st.title("Admin Dashboard")
-    # st.write("Welcome, Admin! 👩‍⚕️")
     total_patients = "N/A"
     total_engaged = "N/A"
     total_alerts = "N/A"
@@ -647,14 +693,12 @@ elif menu == "Dashboard":
 
     # --- Fetch Metrics ---
     try:
-        # Get total patients count
         patients_res = requests.get(f"{API_URL}/patient")
         if patients_res.status_code == 200:
             total_patients = len(patients_res.json())
         else:
             st.warning("Could not fetch total patient count.")
 
-        # Get engagement and alert metrics
         metrics_res = requests.get(f"{API_URL}/patient/metrics")
         if metrics_res.status_code == 200:
             metrics_data = metrics_res.json()
@@ -662,7 +706,7 @@ elif menu == "Dashboard":
             total_alerts = metrics_data.get('total_flagged_alerts', 0)
             if total_alerts > 0:
                 alert_delta_text = f"{total_alerts} High Priority"
-                alert_delta_color = "inverse"  # Makes delta red
+                alert_delta_color = "inverse"
         else:
             st.warning("Could not fetch dashboard metrics.")
 
@@ -670,8 +714,7 @@ elif menu == "Dashboard":
         st.error(f"Error connecting to API: {e}")
     # --- End Fetch Metrics ---
 
-    st.subheader("📊 Key Metrics")  # Changed subheader
-    # st.write("Visual insights and performance overview") # Optional text
+    st.subheader("📊 Key Metrics")
 
     # --- Display Dynamic Metric Cards ---
     col1, col2, col3 = st.columns(3)
@@ -686,7 +729,6 @@ elif menu == "Dashboard":
                 </div>
                 """, unsafe_allow_html=True)
     with col2:
-        # Using a phone/call icon for engaged
         st.markdown(
             f"""
                 <div class="metric-card">
@@ -697,7 +739,6 @@ elif menu == "Dashboard":
                 """, unsafe_allow_html=True)
 
     with col3:
-        # Using the existing alert icon
         st.markdown(
             f"""
                 <div class="metric-card">
@@ -706,14 +747,9 @@ elif menu == "Dashboard":
                     <div class="metric-value">{total_alerts}</div>
                 </div>
                 """, unsafe_allow_html=True)
-        # Optionally add the delta text below the card if needed,
-        # st.metric doesn't integrate well with custom HTML cards
-        # if alert_delta_text:
-        #     st.markdown(f"<p style='text-align:center; color: #ef4444;'>{alert_delta_text}</p>", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown('<h3 style="color: #14b8a6; margin-top: 40px;">📈 Insights Overview</h3>', unsafe_allow_html=True)
-    col_left, col_right = st.columns(2)
+    st.markdown('<h3 style="color: #007BFF; margin-top: 40px;">📈 Insights Overview</h3>', unsafe_allow_html=True)
 
     call_records = []
     try:
@@ -731,49 +767,52 @@ elif menu == "Dashboard":
     # 1. Sentiment Pie Chart
     with col_left:
         st.subheader("Follow-up Sentiment")
-        fig1, ax1 = plt.subplots(facecolor='#0a1e2b')  # Keep background styling
-        ax1.set_facecolor('#0a1e2b')
+        # STYLING CHANGE: Updated facecolor to white
+        fig1, ax1 = plt.subplots(facecolor='#FFFFFF')
+        ax1.set_facecolor('#FFFFFF')
 
         if call_records:
             sentiments = [record.get('overall_sentiment', 'NEUTRAL') for record in call_records]
             sentiment_counts = Counter(sentiments)
 
-            # Ensure order and presence of all categories
             labels = ["POSITIVE", "NEUTRAL", "ALERT"]
             sizes = [sentiment_counts.get(label, 0) for label in labels]
-            colors = ['#06b6d4', '#a7f3d0', '#044954']
+            # STYLING CHANGE: Updated colors to blue/grey/red palette
+            colors = ['#69dbf0', '#25acc4', '#14515c']
 
-            # Filter out zero-value slices to avoid display issues
             non_zero_labels = [label for i, label in enumerate(labels) if sizes[i] > 0]
             non_zero_sizes = [size for size in sizes if size > 0]
             non_zero_colors = [color for i, color in enumerate(colors) if sizes[i] > 0]
 
-            if non_zero_sizes:  # Only plot if there's data
+            if non_zero_sizes:
                 ax1.pie(non_zero_sizes, labels=non_zero_labels, autopct='%1.1f%%', startangle=90,
                         colors=non_zero_colors,
-                        textprops={'color': '#e8f5f7', 'fontsize': 12, 'weight': 'bold'})
+                        # STYLING CHANGE: Updated text color to dark
+                        textprops={'color': '#333333', 'fontsize': 12, 'weight': 'bold'})
                 ax1.axis('equal')
             else:
+                # STYLING CHANGE: Updated text color to dark
                 ax1.text(0.5, 0.5, 'No Sentiment Data', horizontalalignment='center', verticalalignment='center',
-                         color='#e8f5f7')
-                ax1.axis('off')  # Hide axes if no data
+                         color='#333333')
+                ax1.axis('off')
         else:
+            # STYLING CHANGE: Updated text color to dark
             ax1.text(0.5, 0.5, 'No Call Records Found', horizontalalignment='center', verticalalignment='center',
-                     color='#e8f5f7')
-            ax1.axis('off')  # Hide axes if no data
+                     color='#333333')
+            ax1.axis('off')
 
         st.pyplot(fig1)
 
     # 2. Adherence Bar Chart
     with col_right:
         st.subheader("Medication Adherence")
-        fig2, ax2 = plt.subplots(facecolor='#0a1e2b')
-        ax2.set_facecolor('#0a1e2b')
+        # STYLING CHANGE: Updated facecolor to white
+        fig2, ax2 = plt.subplots(facecolor='#FFFFFF')
+        ax2.set_facecolor('#FFFFFF')
 
         if call_records:
-            # Get the CLASSIFIED adherence status directly
             adherence_statuses_raw = [
-                record.get('medical_adherence', 'NOT_ASKED') # Default to UNCLEAR if missing
+                record.get('medical_adherence', 'NOT_ASKED')
                 for record in call_records
             ]
             adherence_statuses = [
@@ -782,36 +821,38 @@ elif menu == "Dashboard":
             ]
             adherence_counts = Counter(adherence_statuses)
 
-            # Define categories based on the classification output
             categories = ["ADHERENT", "NON-ADHERENT", "UNCLEAR"]
             values = [adherence_counts.get(cat, 0) for cat in categories]
-            bar_colors = ["#14b8a6", "#044954", "#a7f3d0"]
+            # STYLING CHANGE: Updated colors to blue/red/grey palette
+            bar_colors = ['#69dbf0', '#25acc4', '#14515c']
 
-            if any(v > 0 for v in values): # Only plot if there's data
+            if any(v > 0 for v in values):
                 bars = ax2.bar(categories, values, color=bar_colors)
-                ax2.set_ylabel("Number of Patients", color='#e8f5f7', fontweight='bold')
-                ax2.tick_params(axis='x', colors='#e8f5f7')
-                ax2.tick_params(axis='y', colors='#e8f5f7')
-                ax2.spines['bottom'].set_color('#14b8a6')
-                ax2.spines['left'].set_color('#14b8a6')
+                # STYLING CHANGE: Updated text/tick/spine colors to dark/grey
+                ax2.set_ylabel("Number of Patients", color='#333333', fontweight='bold')
+                ax2.tick_params(axis='x', colors='#333333')
+                ax2.tick_params(axis='y', colors='#333333')
+                ax2.spines['bottom'].set_color('#CED4DA')
+                ax2.spines['left'].set_color('#CED4DA')
                 ax2.spines['top'].set_visible(False)
                 ax2.spines['right'].set_visible(False)
-                ax2.bar_label(bars, color='#e8f5f7', padding=3) # Add counts on top
+                ax2.bar_label(bars, color='#333333', padding=3)
             else:
-                ax2.text(0.5, 0.5, 'No Adherence Data',transform=ax2.transAxes, # Use axes coordinates
+                # STYLING CHANGE: Updated text color to dark
+                ax2.text(0.5, 0.5, 'No Adherence Data', transform=ax2.transAxes,
                          horizontalalignment='center',
                          verticalalignment='center',
-                         color='#e8f5f7')
+                         color='#333333')
                 ax2.axis('off')
         else:
-             ax2.text(0.5, 0.5, 'No Call Records Found',transform=ax2.transAxes, # Use axes coordinates
-                         horizontalalignment='center',
-                         verticalalignment='center',
-                         color='#e8f5f7')
-             ax2.axis('off')
+            # STYLING CHANGE: Updated text color to dark
+            ax2.text(0.5, 0.5, 'No Call Records Found', transform=ax2.transAxes,
+                     horizontalalignment='center',
+                     verticalalignment='center',
+                     color='#333333')
+            ax2.axis('off')
 
         st.pyplot(fig2)
-
 
     st.markdown("---")
     col1, col2, col3 = st.columns(3)
@@ -854,7 +895,7 @@ elif menu == "Dashboard":
 
     st.markdown("---")
     st.markdown(
-        "<p style='text-align:center;color:#14b8a6;font-size:14px;'>© 2025 CareLoop.AI | Empowering Connected Healthcare</p>",
+        "<p style='text-align:center;color:#007BFF;font-size:14px;'>© 2025 CareLoop.AI | Empowering Connected Healthcare</p>",
         unsafe_allow_html=True
     )
 
@@ -934,17 +975,15 @@ elif menu == "Patient List":
                         )
                         phone = st.text_input("Phone", value=patient_to_edit["phone"])
                         disease = st.text_input("Disease", value=patient_to_edit["disease"])
-                        # visit_date = st.text_input("Visit Date", value=patient_to_edit["visit_date"])
                         try:
                             visit_date_default = datetime.strptime(patient_to_edit["visit_date"], "%Y-%m-%d").date()
                         except:
                             visit_date_default = date.today()
                         visit_date = st.date_input("Visit Date", value=visit_date_default)
                         prescribed_medication = st.text_area(
-                            "Prescribed Medication",
+                            "Prescribed Medication (comma-separated)",
                             value=", ".join(patient_to_edit["prescribed_medication"])
                         )
-                        # next_visit_date = st.text_input("Next Visit Date", value=patient_to_edit["next_visit_date"])
                         try:
                             next_visit_default = datetime.strptime(patient_to_edit["next_visit_date"],
                                                                    "%Y-%m-%d").date()
@@ -995,26 +1034,25 @@ elif menu == "Start Patient Follow-Up":
         options = ["-- Select a patient --"] + name_pres
         sel_name = st.selectbox("Select Patient Name", options, key="patient_select")
 
-        # Only show details if a valid patient is selected
         if sel_name != "-- Select a patient --":
             patient_sel = [p for p in patients if p["name"] == sel_name]
             if patient_sel:
                 pati = patient_sel[0]
 
                 st.markdown("---")
-                st.write("### 📋 Selected Patient Details:")
+                # Using st.container to get the new card styling
+                with st.container():
+                    st.write("### 📋 Selected Patient Details:")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Name:** {pati['name']}")
+                        st.write(f"**Age:** {pati['age']}")
+                        st.write(f"**Gender:** {pati['gender']}")
+                    with col2:
+                        st.write(f"**Phone:** {pati['phone']}")
+                        st.write(f"**Visit Date:** {pati['visit_date']}")
 
-                # Create a nice card layout for patient details
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"**Name:** {pati['name']}")
-                    st.write(f"**Age:** {pati['age']}")
-                    st.write(f"**Gender:** {pati['gender']}")
-                with col2:
-                    st.write(f"**Phone:** {pati['phone']}")
-                    st.write(f"**Visit Date:** {pati['visit_date']}")
-
-                st.write(f"**Prescribed Medication:** {', '.join(pati['prescribed_medication'])}")
+                    st.write(f"**Prescribed Medication:** {', '.join(pati['prescribed_medication'])}")
 
                 if "followup_started" not in st.session_state:
                     st.session_state.followup_started = False
@@ -1024,7 +1062,7 @@ elif menu == "Start Patient Follow-Up":
                     if st.button("📞 Start Patient Follow-Up"):
                         try:
                             call_data = {
-                                "patient_id": pati["_id"],  # <-- ADD THIS LINE
+                                "patient_id": pati["_id"],
                                 "name": pati["name"],
                                 "phone": pati["phone"]
                             }
@@ -1033,7 +1071,6 @@ elif menu == "Start Patient Follow-Up":
                             if call_res.status_code == 200:
                                 st.success(f"Initiating AI call to {pati['name']} ...")
                                 time.sleep(2)
-                                # st.info("Call connected. AI is greeting the patient by name.")
                             else:
                                 st.error("Failed to initiate call. Please check backend logs.")
                         except Exception as e:
@@ -1050,7 +1087,6 @@ if "selected_call_record" not in st.session_state:
 elif menu == "Patient Feedback":
     st.subheader("💬 Patient Feedback Summary")
 
-    # --- VIEW 1: Show the chat for the selected call ---
     if st.session_state.selected_call_record:
         record = st.session_state.selected_call_record
         patient_name = record.get('patient_name', 'Unknown Patient')
@@ -1059,23 +1095,19 @@ elif menu == "Patient Feedback":
         st.markdown(f"### Chat History for {patient_name}")
         st.markdown(f"**Call Date:** {call_date}")
 
-        # --- (3) DISPLAY SUMMARY METRICS ---
         st.markdown("#### Call Summary:")
         col1_sum, col2_sum, col3_sum = st.columns(3)
 
-        # Overall Sentiment
         sentiment = record.get('overall_sentiment', 'UNCLEAR')
         sentiment_emoji = get_sentiment_emoji(sentiment)
         with col1_sum:
             st.metric(label="Overall Sentiment", value=f"{sentiment_emoji} {sentiment}")
 
-        # Medication Adherence
         adherence = record.get('medical_adherence', 'UNCLEAR')
         adherence_emoji = get_adherence_emoji(adherence)
         with col2_sum:
             st.metric(label="Medication Adherence", value=f"{adherence_emoji} {adherence}")
 
-        # Side Effects Reported
         side_effects = record.get('side_effects_reported', False)
         side_effects_display = get_side_effects_display(side_effects)
         with col3_sum:
@@ -1083,7 +1115,6 @@ elif menu == "Patient Feedback":
 
         st.markdown("---")
 
-        # Dynamically build the chat HTML
         chat_html = ""
         for entry in record['transcript']:
             if entry['speaker'] == 'Assistant':
@@ -1101,7 +1132,6 @@ elif menu == "Patient Feedback":
             st.session_state.selected_call_record = None
             st.rerun()
 
-    # --- VIEW 2: Show the list of all calls ---
     else:
         tb1, tb2, tb3 = st.tabs(["Call History", "Summary", "Medication Details"])
 
@@ -1117,7 +1147,7 @@ elif menu == "Patient Feedback":
                         cols = st.columns([2, 2, 2, 1])
                         cols[0].markdown("**Patient Name**")
                         cols[1].markdown("**Call Duration**")
-                        cols[2].markdown("**Sentiment**")  # Renamed column
+                        cols[2].markdown("**Sentiment**")
                         cols[3].markdown("**Action**")
                         st.markdown("---")
 
@@ -1129,8 +1159,7 @@ elif menu == "Patient Feedback":
                             sentiment = record.get('overall_sentiment', 'N/A')
                             emoji = get_sentiment_emoji(sentiment)
                             cols[2].write(f"{emoji} {sentiment}")
-                            # Use record['_id'] which comes from the API now
-                            record_id = record.get('_id', record.get('id'))  # Handle both possibilities
+                            record_id = record.get('_id', record.get('id'))
                             if record_id and cols[3].button("💬", key=f"chat_{record_id}", help="View Chat"):
                                 st.session_state.selected_call_record = record
                                 st.rerun()
@@ -1148,8 +1177,6 @@ elif menu == "Patient Feedback":
 elif menu == "Appointments":
     st.title("📅 Confirmed Appointments")
 
-    # Define the column layout
-    # [Patient Name, Department, Date, Time, Status]
     column_weights = [3, 2.5, 2, 1.5, 2]
     column_headers = ["Patient Name", "Department", "Date", "Time", "Status"]
 
@@ -1166,14 +1193,12 @@ elif menu == "Appointments":
                 if not active_appointments:
                     st.info("No upcoming confirmed appointments found.")
                 else:
-                    # --- Create Header Row ---
                     st.divider()
                     header_cols = st.columns(column_weights)
                     for i, header in enumerate(column_headers):
                         header_cols[i].markdown(f"**{header}**")
                     st.divider()
 
-                    # --- Create Data Rows ---
                     for appt in active_appointments:
                         cols = st.columns(column_weights)
                         cols[0].write(appt.get('patient_name', 'N/A'))
@@ -1200,14 +1225,12 @@ elif menu == "Appointments":
                 if not past_appointments:
                     st.info("No past appointment history found.")
                 else:
-                    # --- Create Header Row ---
                     st.divider()
                     header_cols = st.columns(column_weights)
                     for i, header in enumerate(column_headers):
                         header_cols[i].markdown(f"**{header}**")
                     st.divider()
 
-                    # --- Create Data Rows ---
                     for appt in past_appointments:
                         cols = st.columns(column_weights)
                         cols[0].write(appt.get('patient_name', 'N/A'))
@@ -1215,7 +1238,6 @@ elif menu == "Appointments":
                         cols[2].write(appt.get('appointment_date', 'N/A'))
                         cols[3].write(appt.get('appointment_time', 'N/A'))
                         status = appt.get('status', 'N/A')
-                        # Status here will be 'Visited' based on DB logic
                         if status == "Visited":
                             cols[4].markdown(f"✔️ {status}")
                         else:
@@ -1227,142 +1249,117 @@ elif menu == "Appointments":
 
 
 elif menu == "Analytics":
+    # This section duplicates the Dashboard.
+    # In a production app, you'd factor this into a shared function.
+    # For this refactor, I will apply the same styling changes here.
 
+    st.subheader("📊 Key Metrics")
     total_patients = "N/A"
     total_engaged = "N/A"
     total_alerts = "N/A"
-    alert_delta_text = None
-    alert_delta_color = "normal"
 
-    # --- Fetch Metrics ---
     try:
-        # Get total patients count
         patients_res = requests.get(f"{API_URL}/patient")
         if patients_res.status_code == 200:
             total_patients = len(patients_res.json())
-        else:
-            st.warning("Could not fetch total patient count.")
-
-        # Get engagement and alert metrics
         metrics_res = requests.get(f"{API_URL}/patient/metrics")
         if metrics_res.status_code == 200:
             metrics_data = metrics_res.json()
             total_engaged = metrics_data.get('total_patients_engaged', 0)
             total_alerts = metrics_data.get('total_flagged_alerts', 0)
-            if total_alerts > 0:
-                alert_delta_text = f"{total_alerts} High Priority"
-                alert_delta_color = "inverse"  # Makes delta red
-        else:
-            st.warning("Could not fetch dashboard metrics.")
-
     except Exception as e:
         st.error(f"Error connecting to API: {e}")
-    # --- End Fetch Metrics ---
 
-    st.subheader("📊 Key Metrics")  # Changed subheader
-    # st.write("Visual insights and performance overview") # Optional text
-
-    # --- Display Dynamic Metric Cards ---
     col1, col2, col3 = st.columns(3)
-
     with col1:
         st.markdown(
             f"""
-                    <div class="metric-card">
-                        <img src="https://cdn-icons-png.flaticon.com/512/4320/4320371.png" width="60">
-                        <div class="metric-label">Total Patients</div>
-                        <div class="metric-value">{total_patients}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                <div class="metric-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4320/4320371.png" width="60">
+                    <div class="metric-label">Total Patients</div>
+                    <div class="metric-value">{total_patients}</div>
+                </div>
+                """, unsafe_allow_html=True)
     with col2:
-        # Using a phone/call icon for engaged
         st.markdown(
             f"""
-                    <div class="metric-card">
-                        <img src="https://cdn-icons-png.flaticon.com/512/455/455705.png" width="60">
-                        <div class="metric-label">Patients Engaged</div>
-                        <div class="metric-value">{total_engaged}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
+                <div class="metric-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/455/455705.png" width="60">
+                    <div class="metric-label">Patients Engaged</div>
+                    <div class="metric-value">{total_engaged}</div>
+                </div>
+                """, unsafe_allow_html=True)
     with col3:
-        # Using the existing alert icon
         st.markdown(
             f"""
-                    <div class="metric-card">
-                        <img src="https://cdn-icons-png.flaticon.com/512/7249/7249210.png" width="60">
-                        <div class="metric-label">Active Alerts</div>
-                        <div class="metric-value">{total_alerts}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-        # Optionally add the delta text below the card if needed,
-        # st.metric doesn't integrate well with custom HTML cards
-        # if alert_delta_text:
-        #     st.markdown(f"<p style='text-align:center; color: #ef4444;'>{alert_delta_text}</p>", unsafe_allow_html=True)
+                <div class="metric-card">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7249/7249210.png" width="60">
+                    <div class="metric-label">Active Alerts</div>
+                    <div class="metric-value">{total_alerts}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown('<h3 style="color: #14b8a6; margin-top: 40px;">📈 Insights Overview</h3>', unsafe_allow_html=True)
-    col_left, col_right = st.columns(2)
+    st.markdown('<h3 style="color: #007BFF; margin-top: 40px;">📈 Insights Overview</h3>', unsafe_allow_html=True)
 
     call_records = []
     try:
         records_res = requests.get(f"{API_URL}/patient/call-records")
         if records_res.status_code == 200:
             call_records = records_res.json()
-        else:
-            st.warning("Could not fetch call records for charts.")
     except Exception as e:
         st.error(f"Error connecting to API for call records: {e}")
 
-    # --- Generate Charts ---
     col_left, col_right = st.columns(2)
 
     # 1. Sentiment Pie Chart
     with col_left:
         st.subheader("Follow-up Sentiment")
-        fig1, ax1 = plt.subplots(facecolor='#0a1e2b')  # Keep background styling
-        ax1.set_facecolor('#0a1e2b')
+        # STYLING CHANGE: Updated facecolor to white
+        fig1, ax1 = plt.subplots(facecolor='#FFFFFF')
+        ax1.set_facecolor('#FFFFFF')
 
         if call_records:
             sentiments = [record.get('overall_sentiment', 'NEUTRAL') for record in call_records]
             sentiment_counts = Counter(sentiments)
-
-            # Ensure order and presence of all categories
             labels = ["POSITIVE", "NEUTRAL", "ALERT"]
             sizes = [sentiment_counts.get(label, 0) for label in labels]
-            colors = ['#06b6d4', '#a7f3d0', '#044954']
+            # STYLING CHANGE: Updated colors to blue/grey/red palette
+            colors = ['#69dbf0', '#25acc4', '#14515c']
 
-            # Filter out zero-value slices to avoid display issues
             non_zero_labels = [label for i, label in enumerate(labels) if sizes[i] > 0]
             non_zero_sizes = [size for size in sizes if size > 0]
             non_zero_colors = [color for i, color in enumerate(colors) if sizes[i] > 0]
 
-            if non_zero_sizes:  # Only plot if there's data
+            if non_zero_sizes:
                 ax1.pie(non_zero_sizes, labels=non_zero_labels, autopct='%1.1f%%', startangle=90,
                         colors=non_zero_colors,
-                        textprops={'color': '#e8f5f7', 'fontsize': 12, 'weight': 'bold'})
+                        # STYLING CHANGE: Updated text color to dark
+                        textprops={'color': '#333333', 'fontsize': 12, 'weight': 'bold'})
                 ax1.axis('equal')
             else:
+                # STYLING CHANGE: Updated text color to dark
                 ax1.text(0.5, 0.5, 'No Sentiment Data', horizontalalignment='center', verticalalignment='center',
-                         color='#e8f5f7')
-                ax1.axis('off')  # Hide axes if no data
+                         color='#333333')
+                ax1.axis('off')
         else:
+            # STYLING CHANGE: Updated text color to dark
             ax1.text(0.5, 0.5, 'No Call Records Found', horizontalalignment='center', verticalalignment='center',
-                     color='#e8f5f7')
-            ax1.axis('off')  # Hide axes if no data
+                     color='#333333')
+            ax1.axis('off')
 
         st.pyplot(fig1)
 
     # 2. Adherence Bar Chart
     with col_right:
         st.subheader("Medication Adherence")
-        fig2, ax2 = plt.subplots(facecolor='#0a1e2b')
-        ax2.set_facecolor('#0a1e2b')
+        # STYLING CHANGE: Updated facecolor to white
+        fig2, ax2 = plt.subplots(facecolor='#FFFFFF')
+        ax2.set_facecolor('#FFFFFF')
 
         if call_records:
-            # Get the CLASSIFIED adherence status directly
             adherence_statuses_raw = [
-                record.get('medical_adherence', 'NOT_ASKED')  # Default to UNCLEAR if missing
+                record.get('medical_adherence', 'NOT_ASKED')
                 for record in call_records
             ]
             adherence_statuses = [
@@ -1371,32 +1368,35 @@ elif menu == "Analytics":
             ]
             adherence_counts = Counter(adherence_statuses)
 
-            # Define categories based on the classification output
             categories = ["ADHERENT", "NON-ADHERENT", "UNCLEAR"]
             values = [adherence_counts.get(cat, 0) for cat in categories]
-            bar_colors = ["#14b8a6", "#044954", "#a7f3d0"]
+            # STYLING CHANGE: Updated colors to blue/red/grey palette
+            bar_colors = ['#69dbf0', '#25acc4', '#14515c']
 
-            if any(v > 0 for v in values):  # Only plot if there's data
+            if any(v > 0 for v in values):
                 bars = ax2.bar(categories, values, color=bar_colors)
-                ax2.set_ylabel("Number of Patients", color='#e8f5f7', fontweight='bold')
-                ax2.tick_params(axis='x', colors='#e8f5f7')
-                ax2.tick_params(axis='y', colors='#e8f5f7')
-                ax2.spines['bottom'].set_color('#14b8a6')
-                ax2.spines['left'].set_color('#14b8a6')
+                # STYLING CHANGE: Updated text/tick/spine colors to dark/grey
+                ax2.set_ylabel("Number of Patients", color='#333333', fontweight='bold')
+                ax2.tick_params(axis='x', colors='#333333')
+                ax2.tick_params(axis='y', colors='#333333')
+                ax2.spines['bottom'].set_color('#CED4DA')
+                ax2.spines['left'].set_color('#CED4DA')
                 ax2.spines['top'].set_visible(False)
                 ax2.spines['right'].set_visible(False)
-                ax2.bar_label(bars, color='#e8f5f7', padding=3)  # Add counts on top
+                ax2.bar_label(bars, color='#333333', padding=3)
             else:
-                ax2.text(0.5, 0.5, 'No Adherence Data', transform=ax2.transAxes,  # Use axes coordinates
+                # STYLING CHANGE: Updated text color to dark
+                ax2.text(0.5, 0.5, 'No Adherence Data', transform=ax2.transAxes,
                          horizontalalignment='center',
                          verticalalignment='center',
-                         color='#e8f5f7')
+                         color='#333333')
                 ax2.axis('off')
         else:
-            ax2.text(0.5, 0.5, 'No Call Records Found', transform=ax2.transAxes,  # Use axes coordinates
+            # STYLING CHANGE: Updated text color to dark
+            ax2.text(0.5, 0.5, 'No Call Records Found', transform=ax2.transAxes,
                      horizontalalignment='center',
                      verticalalignment='center',
-                     color='#e8f5f7')
+                     color='#333333')
             ax2.axis('off')
 
         st.pyplot(fig2)
@@ -1406,4 +1406,3 @@ elif menu == "Logout":
     st.success("You have been logged out successfully.")
     time.sleep(1)
     st.switch_page("ui_file.py")
-

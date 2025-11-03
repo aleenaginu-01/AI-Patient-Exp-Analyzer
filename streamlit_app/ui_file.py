@@ -28,11 +28,12 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
 
+    /* REFINED: Light, clinical background for the whole app */
     .stApp {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        background-color: #b9f0de;
     }
 
-    /* Hide Streamlit branding and sidebar */
+    /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -40,14 +41,15 @@ st.markdown("""
     section[data-testid="stSidebar"] {display: none;}
     .css-1d391kg {display: none;}
 
-    /* Main container */
+    /* REFINED: Main container with softer shadow and light border */
     .main-container {
-        background: #fffbeb;
+        background: #d4faf1;
         border-radius: 20px;
         padding: 40px;
         margin: 20px auto;
         max-width: 1200px;
-        box-shadow: 0 20px 60px rgba(20, 184, 166, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); /* Softer shadow */
+        border: 1px solid #E9ECEF; /* Subtle border */
         animation: fadeInUp 0.8s ease-out;
     }
 
@@ -61,19 +63,17 @@ st.markdown("""
     .logo {
         font-size: 48px;
         font-weight: 700;
-        background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color:  #245444; /* Dark, legible title color */
         margin-bottom: 10px;
     }
 
     .tagline {
-        color: #0f766e;
+        color: #5A6A7B; /* Dark, legible subtitle color */
         font-size: 18px;
         font-weight: 400;
     }
 
-    /* Stats Cards */
+    /* Stats Cards (Accent color used well) */
     .stats-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -82,24 +82,25 @@ st.markdown("""
     }
 
     .stat-card {
-        background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+        background: #d4faf1;
         border-radius: 15px;
         padding: 25px;
-        color: white;
-        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
+        color:  #245444;
+        box-shadow: 0 10px 30px rgba(78, 195, 245, 0.25);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         animation: slideIn 0.6s ease-out;
     }
 
     .stat-card:hover {
         transform: translateY(-10px);
-        box-shadow: 0 15px 40px rgba(20, 184, 166, 0.5);
+        box-shadow: 0 15px 40px rgba(78, 195, 245, 0.35);
     }
 
     .stat-number {
         font-size: 36px;
         font-weight: 700;
         margin: 10px 0;
+        color:  #245444;
     }
 
     .stat-label {
@@ -107,12 +108,6 @@ st.markdown("""
         opacity: 0.9;
         text-transform: uppercase;
         letter-spacing: 1px;
-    }
-
-    /* Login Button */
-    .login-btn-container {
-        text-align: center;
-        margin: 40px 0;
     }
 
     /* Features Section */
@@ -123,18 +118,21 @@ st.markdown("""
         margin-top: 40px;
     }
 
+    /* REFINED: Feature card with clean border and shadow as requested */
     .feature-card {
-        background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+        background: #d4faf1;
         border-radius: 15px;
         padding: 30px;
-        border: 2px solid #a7f3d0;
+        border: 1px solid #E0E0E0; /* Requested subtle border */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Requested subtle shadow */
         transition: all 0.3s ease;
         animation: fadeInUp 0.8s ease-out;
     }
 
+    /* REFINED: Hover state uses consistent accent color */
     .feature-card:hover {
-        border-color: #14b8a6;
-        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.2);
+        border-color:  #245444; /* Use primary accent color */
+        box-shadow: 0 6px 16px rgba(78, 195, 245, 0.15); /* Accent shadow */
         transform: translateY(-5px);
     }
 
@@ -146,58 +144,258 @@ st.markdown("""
     .feature-title {
         font-size: 20px;
         font-weight: 600;
-        color: #0f766e;
+        color:  #245444; /* Dark, legible */
         margin-bottom: 10px;
     }
 
     .feature-desc {
-        color: #115e59;
+        color:  #245444; /* Dark, legible */
         font-size: 14px;
         line-height: 1.6;
     }
 
-    /* Login Form Styles */
-    .login-container {
-        max-width: 450px;
-        margin: 50px auto;
-        background: #fffbeb;
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 20px 60px rgba(20, 184, 166, 0.3);
-        animation: fadeInUp 0.6s ease-out;
-    }
+    /* --- LOGIN FORM STYLES --- */
+    /* REFINED: Softer shadow and cleaner border */
+    # .login-container {
+    #     max-width: 480px;
+    #     margin: 50px auto;
+    #     background: #FFFFFF;
+    #     border-radius: 24px;
+    #     padding: 50px 45px;
+    #     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06); /* Softer shadow */
+    #     border: 1px solid #E9ECEF; /* Cleaner border */
+    #     animation: fadeInUp 0.6s ease-out;
+    #     display: flex;
+    #     flex-direction: column;
+    #     align-items: center;
+    # }
 
     .login-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
     }
 
     .login-title {
         font-size: 32px;
         font-weight: 700;
-        background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
+        color: #1A2B4D;
+        margin-bottom: 8px;
     }
 
+    .login-subtitle {
+        color: #5A6A7B;
+        font-size: 15px;
+        font-weight: 400;
+        margin-top: 10px;
+    }
+
+    /* LIGHT INPUT FIELDS - Professional Healthcare Theme (Already excellent) */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > select {
+        background-color: white !important;
+        border: 1.5px solid #E1E8ED !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        font-size: 15px !important;
+        color: black !important; /* Dark, legible input text */
+        transition: all 0.3s ease !important;
+        font-weight: 400 !important;
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+
+    /* Center input containers and labels */
+    .stTextInput, .stSelectbox {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .stTextInput > div, .stSelectbox > div {
+        width: 100% !important;
+        max-width: 400px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .stTextInput > label, .stSelectbox > label {
+        width: 400px !important;
+        max-width: 400px !important;
+    }
+
+    /* Focus state uses accent color */
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus {
+        background-color: #FFFFFF !important;
+        border-color: #4ec3f5 !important;
+        box-shadow: 0 0 0 3px rgba(78, 195, 245, 0.1) !important;
+        outline: none !important;
+    }
+
+    .stTextInput > div > div > input::placeholder {
+        color: #A0AEC0 !important;
+        font-weight: 300 !important;
+    }
+
+    /* Dropdown styling - WHITE background */
+    .stSelectbox > div > div > select {
+        cursor: pointer !important;
+        appearance: none !important;
+        background-color: #FFFFFF !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A0AEC0' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 16px center !important;
+        padding-right: 45px !important;
+    }
+
+    /* Light dropdown options */
+    .stSelectbox > div > div > select option {
+        background-color: #FFFFFF !important;
+        color: #2C3E50 !important;
+    }
+
+    .stSelectbox > div > div > select:hover {
+        border-color: #4ec3f5 !important;
+        background-color: #FFFFFF !important;
+    }
+
+    /* Label styling (Dark and legible) */
+    .stTextInput > label,
+    .stSelectbox > label {
+        color: #2C3E50 !important;
+        font-weight: 500 !important;
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+        letter-spacing: 0.2px !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* --------------------------------- */
+    /* --- BUTTON STYLES (CLEANED) --- */
+    /* --------------------------------- */
+
+    /* General Button Style (Primary) */
     .stButton > button {
-        width: 100%;
-        background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+        width: 100%; /* Works with use_container_width=True */
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%);
         color: black;
         border: none;
-        padding: 15px 30px;
+        padding: 16px 30px;
         font-size: 16px;
         font-weight: 600;
-        border-radius: 10px;
+        border-radius: 12px;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(20, 184, 166, 0.3);
+        box-shadow: 0 6px 20px rgba(78, 195, 245, 0.3);
+        letter-spacing: 0.3px;
+    }
+    
+    .patient-login-button .stButton > button {
+        width: 100%; /* Works with use_container_width=True */
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%);
+        color: black;
+        border: none;
+        padding:18px 40px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(78, 195, 245, 0.3);
+        letter-spacing: 0.3px;
+    }
+    
+    
+    .patient-login-button {
+        width: 100%;
+        max-width: 400px;
     }
 
     .stButton > button:hover {
+        background: linear-gradient(135deg, #1c8065 0%, #62b59f 100%);
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(20, 184, 166, 0.4);
+        box-shadow: 0 10px 30px rgba(78, 195, 245, 0.4);
+    }
+
+    .stButton > button:active {
+        transform: translateY(0px);
+    }
+
+    /* Login to Portal button on dashboard (Slightly larger) */
+    .stButton > button:contains('Login to Portal') {
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%);
+        font-size: 17px;
+        padding: 18px 40px;
+        box-shadow: 0 8px 25px rgba(78, 195, 245, 0.35);
+    }
+
+    /* --- SPECIFIC BUTTON CLASSES (Unchanged, already correct) --- */
+
+    /* Admin Login Button (in col1) - Inherits default blue style */
+    .admin-login-button .stButton > button {
+        /* No override needed, it takes the main primary style */
+    }
+
+    /* Admin Back Button (in col2) - Secondary/Ghost style */
+    .admin-back-button .stButton > button {
+        background: #FFFFFF;
+        color: #5A6A7B; /* Dark, legible text */
+        border: 1.5px solid #E1E8ED; /* Light grey border */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .admin-back-button .stButton > button:hover {
+        background: #F8FAFB;
+        color: #2C3E50;
+        border-color: #CBD5E0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Patient Login Button - Inherits primary style, width handled by default */
+    .patient-login-button .stButton > button {
+        /* This rule is intentionally blank, it correctly
+           inherits the main .stButton > button style (width: 100%)
+           which is what we want.
+        */
+    }
+
+    /* --------------------------------- */
+    /* --- END OF BUTTON STYLES --- */
+    /* --------------------------------- */
+
+
+    /* Success and error messages */
+    .stSuccess, .stError, .stWarning {
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        margin-top: 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+    }
+
+    .stSuccess {
+        background-color: #036b4f !important;
+        color: white !important;
+        border: 1px solid #C3E6CB !important;
+    }
+
+    .stError {
+        background-color: #F8D7DA !important;
+        color: #721C24 !important;
+        border: 1px solid #F5C6CB !important;
+    }
+
+    .stWarning {
+        background-color: #e8bf3f !important;
+        color: black !important;
+        border: 1px solid #FFEAA7 !important;
+    }
+
+    /* Spinner */
+    .stSpinner > div {
+        border-color: #4ec3f5 !important;
     }
 
     /* Animations */
@@ -232,19 +430,6 @@ st.markdown("""
         }
     }
 
-    /* Pulse Animation */
-    @keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.05);
-        }
-    }
-
-    .pulse {
-        animation: pulse 2s infinite;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -269,16 +454,16 @@ def show_dashboard():
     st.markdown("""
     <div class="stats-container">
         <div class="stat-card">
-            <div class="stat-label">Active Patients</div>
-            <div class="stat-number">2,847</div>
+            <div class="stat-label">Total Departments</div>
+            <div class="stat-number">35</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Today's Appointments</div>
-            <div class="stat-number">156</div>
+            <div class="stat-number">16</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Available Doctors</div>
-            <div class="stat-number">42</div>
+            <div class="stat-number">97</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Bed Occupancy</div>
@@ -337,7 +522,7 @@ def show_login():
     <div class="login-container">
         <div class="login-header">
             <div class="login-title">🏥 CareLoop.ai</div>
-            <p style="color: #0f766e; margin-top: 10px;">Sign in to your account</p>
+            <p class="login-subtitle">Sign in to your account</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -348,15 +533,17 @@ def show_login():
         index=0
     )
 
-    if role =="Admin":
+    if role == "Admin":
         username = st.text_input("Username", placeholder="Enter your username")
         password = st.text_input("Password", type="password", placeholder="Enter your password")
 
         col1, col2 = st.columns(2)
 
         with col1:
+            # Wrap Login button in its CSS class
+            st.markdown('<div class="admin-login-button">', unsafe_allow_html=True)
             if st.button("Login", use_container_width=True):
-                if username =="admin" and password =="1234":
+                if username == "admin" and password == "1234":
                     with st.spinner("Authenticating..."):
                         time.sleep(1)
                         st.session_state.logged_in = True
@@ -364,19 +551,23 @@ def show_login():
                         st.success(f"✅ Welcome, Admin!")
                         time.sleep(1)
                         st.switch_page("pages/dashboard.py")
-                        # st.balloons()
                 else:
-                    st.error("Please enter both username and password")
+                    st.error("Incorrect username or password")
+            st.markdown('</div>', unsafe_allow_html=True)
 
         with col2:
+            # Wrap Back button in its CSS class
+            st.markdown('<div class="admin-back-button">', unsafe_allow_html=True)
             if st.button("Back to Dashboard", use_container_width=True):
                 st.session_state.page = 'dashboard'
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
     elif role == "Patient":
-        # st.subheader(" Patient Login")
-        patient_id = st.text_input("Enter Patient ID or Phone Number")
+        patient_id = st.text_input("Enter Patient ID or Phone Number", placeholder="e.g., LIS123")
 
+        # Wrap Patient Login button in its CSS class
+        st.markdown('<div class="patient-login-button">', unsafe_allow_html=True)
         if st.button("Login as Patient"):
             if patient_id.strip() == "LIS123":
                 st.success("Welcome! Redirecting to your User Page...")
@@ -385,15 +576,15 @@ def show_login():
                 st.switch_page("pages/user.py")
             else:
                 st.warning("Please enter your Patient ID or Phone Number.")
-
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
     # Additional Info
     st.markdown("""
-    <div style="text-align: center; margin-top: 30px; color: white;">
-        <p style="font-size: 14px;">Don't have an account? <a href="#" style="color: white; font-weight: 600;">Contact Administrator</a></p>
-        <p style="font-size: 12px; margin-top: 10px; opacity: 0.8;">© 2024 CareLoop.ai - All rights reserved</p>
+    <div style="text-align: center; margin-top: 30px; color: #5A6A7B;">
+        <p style="font-size: 14px;">Don't have an account? <a href="#" style="color: #4ec3f5; font-weight: 600; text-decoration: none;">Contact Administrator</a></p>
+        <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">© 2024 CareLoop.ai - All rights reserved</p>
     </div>
     """, unsafe_allow_html=True)
 
