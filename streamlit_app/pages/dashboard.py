@@ -312,7 +312,7 @@ hide_default_format = """
 
         /* Calendar hover */
         .stDateInput button:hover {
-            background: #E0E7FF !constants;
+            background: #E0E7FF !important ;
         }
 
         /* Input Focus State */
@@ -588,7 +588,50 @@ hide_default_format = """
         font-size: 28px;
         font-weight: 600;
     }
-        </style>
+    /* --- Call Status Container --- */
+    .call-status-container {
+        background: #FFFFFF;
+        border: 1px solid #E0E0E0;
+        border-radius: 15px;
+        padding: 40px;
+        max-width: 450px;
+        margin: 30px auto;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+    .call-status-icons {
+        font-size: 48px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+    }
+    .call-status-text {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1A2B4D;
+    }
+    .call-status-subtext {
+        font-size: 15px;
+        color: #5A6A7B;
+        margin-top: 10px;
+    }
+    /* --- Add Patient Submit Button Style --- */
+    .add-patient-form-button .stButton > button {
+        width: 100%; 
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%) !important;
+        color: black !important;
+        border: none;
+        padding: 16px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(98, 181, 159, 0.3); /* I updated the shadow color for you */
+    }
+        </style> 
 """
 st.markdown(hide_default_format, unsafe_allow_html=True)
 
@@ -658,7 +701,10 @@ if menu == "Add Patients":
         visit_date = st.date_input("Visit Date", value=date.today())
         pre_medi = st.text_input("Prescribed Medication (comma-separated)")
         next_visit_date = st.date_input("Next Visit Date", value=date.today())
+        st.markdown('<div class="add-patient-form-button">', unsafe_allow_html=True)
         submitted = st.form_submit_button("Add Patient")
+        st.markdown('</div>', unsafe_allow_html=True)
+        # submitted = st.form_submit_button("Add Patient")
         if submitted:
             if not name.strip() or not phone.strip() or not disease.strip() or not pre_medi.strip() or age == 0:
                 st.error("⚠️ All fields are required. Please fill in all details and set a valid age.")
@@ -1026,68 +1072,147 @@ elif menu == "Patient List":
 
 elif menu == "Start Patient Follow-Up":
     st.subheader("📞 Start Patient Follow-Up")
-    res = requests.get(f"{API_URL}/patient/pending-followup-patients")
-    patients = res.json()
-    name_pres = [pat["name"] for pat in patients if "name" in pat]
 
-    if name_pres:
-        options = ["-- Select a patient --"] + name_pres
-        sel_name = st.selectbox("Select Patient Name", options, key="patient_select")
+    # --- POLLING, TIMEOUT, AND UI LOGIC ---
+    if "monitoring_call_patient_name" in st.session_state:
+        patient_name = st.session_state.monitoring_call_patient_name
+        initial_count = st.session_state.initial_call_count
+        start_time = st.session_state.monitoring_start_time
 
-        if sel_name != "-- Select a patient --":
-            patient_sel = [p for p in patients if p["name"] == sel_name]
-            if patient_sel:
-                pati = patient_sel[0]
+        # --- 1. TIMEOUT CHECK (NEW) ---
+        # Check if 3 minutes (180s) have passed without completion
+        if (time.time() - start_time) > 180:
+            st.error(
+                f"Call monitor timed out for {patient_name}. The call may have failed or was not answered. Resetting.")
+            # Clear state and reset
+            del st.session_state.monitoring_call_patient_name
+            del st.session_state.initial_call_count
+            del st.session_state.monitoring_start_time
+            time.sleep(3)  # Give user time to read error
+            st.rerun()
 
-                st.markdown("---")
-                # Using st.container to get the new card styling
-                with st.container():
-                    st.write("### 📋 Selected Patient Details:")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.write(f"**Name:** {pati['name']}")
-                        st.write(f"**Age:** {pati['age']}")
-                        st.write(f"**Gender:** {pati['gender']}")
-                    with col2:
-                        st.write(f"**Phone:** {pati['phone']}")
-                        st.write(f"**Visit Date:** {pati['visit_date']}")
+        # --- 2. POLLING CONTAINER (UPDATED) ---
+        else:
+            # This spinner now shows your custom container *inside* it
+            with st.spinner("Monitoring call status..."):
 
-                    st.write(f"**Prescribed Medication:** {', '.join(pati['prescribed_medication'])}")
+                # --- This is the new UI container you asked for ---
+                st.markdown(f"""
+                <div class="call-status-container">
+                    <div class="call-status-icons">
+                        <span>🤖</span>
+                        <span style="color: #007BFF; font-weight: 800;">... 📞 ...</span>
+                        <span>🧑</span>
+                    </div>
+                    <div class="call-status-text">
+                        AI call in progress with {patient_name}
+                    </div>
+                    <div class="call-status-subtext">
+                        Checking for call completion. This may take a moment.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                # --- End of new UI container ---
 
-                if "followup_started" not in st.session_state:
-                    st.session_state.followup_started = False
+                time.sleep(10)  # Poll every 10 seconds
 
-                st.markdown("---")
-                if not st.session_state.followup_started:
+                try:
+                    records_res = requests.get(f"{API_URL}/patient/call-records")
+                    if records_res.status_code == 200:
+                        current_count = len(records_res.json())
+
+                        # Check if a new record has been added
+                        if current_count > initial_count:
+                            st.success(f"✅ Call with {patient_name} has ended.")
+                            st.balloons()
+                            del st.session_state.monitoring_call_patient_name
+                            del st.session_state.initial_call_count
+                            del st.session_state.monitoring_start_time
+                            st.rerun()
+                        else:
+                            st.rerun()  # Keep polling
+                    else:
+                        st.error("Error checking call status. Stopping monitor.")
+                        del st.session_state.monitoring_call_patient_name
+                        del st.session_state.initial_call_count
+                        del st.session_state.monitoring_start_time
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Connection error: {e}. Stopping monitor.")
+                    del st.session_state.monitoring_call_patient_name
+                    del st.session_state.initial_call_count
+                    del st.session_state.monitoring_start_time
+                    st.rerun()
+
+    # --- "START CALL" PAGE LOGIC (IF NOT MONITORING) ---
+    elif "monitoring_call_patient_name" not in st.session_state:
+        try:
+            res = requests.get(f"{API_URL}/patient/pending-followup-patients")
+            if res.status_code != 200:
+                st.error("Could not fetch pending patients.")
+                st.stop()
+            patients = res.json()
+        except Exception as e:
+            st.error(f"Error connecting to API: {e}")
+            st.stop()
+
+        name_pres = [pat["name"] for pat in patients if "name" in pat]
+        if name_pres:
+            options = ["-- Select a patient --"] + name_pres
+            sel_name = st.selectbox("Select Patient Name", options, key="patient_select")
+
+            if sel_name != "-- Select a patient --":
+                pati = next((p for p in patients if p["name"] == sel_name), None)
+                if pati:
+                    st.markdown("---")
+                    with st.container():
+                        st.write("### 📋 Selected Patient Details:")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.write(f"**Name:** {pati['name']}")
+                            st.write(f"**Age:** {pati['age']}")
+                            st.write(f"**Gender:** {pati['gender']}")
+                        with col2:
+                            st.write(f"**Phone:** {pati['phone']}")
+                            st.write(f"**Visit Date:** {pati['visit_date']}")
+                        st.write(f"**Prescribed Medication:** {', '.join(pati['prescribed_medication'])}")
+                    st.markdown("---")
+
                     if st.button("📞 Start Patient Follow-Up"):
                         try:
-                            call_data = {
-                                "patient_id": pati["_id"],
-                                "name": pati["name"],
-                                "phone": pati["phone"]
-                            }
+                            initial_records_res = requests.get(f"{API_URL}/patient/call-records")
+                            if initial_records_res.status_code == 200:
+                                initial_count = len(initial_records_res.json())
+                            else:
+                                st.error("Could not get initial call count. Aborting.")
+                                st.stop()
+
+                            call_data = {"patient_id": pati["_id"], "name": pati["name"], "phone": pati["phone"]}
                             call_res = requests.post(f"{CALL_API_URL}/patient/call_number", json=call_data)
 
                             if call_res.status_code == 200:
-                                st.success(f"Initiating AI call to {pati['name']} ...")
+                                # --- SET ALL MONITORING STATES ---
+                                st.session_state.monitoring_call_patient_name = pati["name"]
+                                st.session_state.initial_call_count = initial_count
+                                st.session_state.monitoring_start_time = time.time()  # <-- ADDED TIMEOUT
+
+                                st.info(f"Initiating AI call to {pati['name']}... Monitoring for completion.")
                                 time.sleep(2)
+                                st.rerun()
                             else:
                                 st.error("Failed to initiate call. Please check backend logs.")
                         except Exception as e:
                             st.error(f"Error connecting to backend: {e}")
-
+            else:
+                st.info("👆 Please select a patient from the dropdown to view details and start follow-up.")
         else:
-            st.info("👆 Please select a patient from the dropdown to view details and start follow-up.")
-    else:
-        st.error("No Patients Found")
-
-if "selected_call_record" not in st.session_state:
-    st.session_state.selected_call_record = None
+            st.info("No patients are currently pending follow-up.")
 
 elif menu == "Patient Feedback":
+
     st.subheader("💬 Patient Feedback Summary")
 
-    if st.session_state.selected_call_record:
+    if "selected_call_record" in st.session_state and st.session_state.selected_call_record is not None:
         record = st.session_state.selected_call_record
         patient_name = record.get('patient_name', 'Unknown Patient')
         call_date = record.get('start_time', '').split('T')[0]
