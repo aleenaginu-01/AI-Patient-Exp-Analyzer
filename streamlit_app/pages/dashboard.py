@@ -1555,23 +1555,29 @@ elif menu == "Analytics":
         ax_rca.set_facecolor('white')
 
         if root_cause_data:
-            labels = list(root_cause_data.keys())
-            sizes = list(root_cause_data.values())
-            colors = plt.cm.Blues_r([x / len(labels) for x in range(len(labels))])
+            sorted_data = sorted(root_cause_data.items(), key=lambda item: item[1], reverse=True)
+            labels = [item[0] for item in sorted_data]
+            sizes = [item[1] for item in sorted_data]
+            colors = plt.cm.Blues_r([x / len(labels) for x in range(len(labels))])  # Your blue theme
 
             if any(s > 0 for s in sizes):
-                ax_rca.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90,
-                           colors=colors,
-                           textprops={'color': 'black', 'fontsize': 12, 'weight': 'bold'})
-                ax_rca.axis('equal')
+                bars = ax_rca.barh(labels, sizes, color=colors)
+                # Fix label/tick/spine colors for light theme
+                ax_rca.set_xlabel("Number of Mentions", color='#333333', fontweight='bold')
+                ax_rca.tick_params(axis='x', colors='#333333')
+                ax_rca.tick_params(axis='y', colors='#333333')
+                ax_rca.spines['bottom'].set_color('#CED4DA')
+                ax_rca.spines['left'].set_color('#CED4DA')
+                ax_rca.spines['top'].set_visible(False)
+                ax_rca.spines['right'].set_visible(False)
+                ax_rca.invert_yaxis()
+                ax_rca.bar_label(bars, color='#333333', padding=5)  # Fix label color
             else:
-                # Use the corrected text call
                 ax_rca.text(0.5, 0.5, 'No Negative Data Analyzed',
                             horizontalalignment='center', verticalalignment='center',
                             color='black', transform=ax_rca.transAxes)
                 ax_rca.axis('off')
         else:
-            # Use the corrected text call
             ax_rca.text(0.5, 0.5, 'No Data Available or Analysis Not Run',
                         horizontalalignment='center', verticalalignment='center',
                         color='black', transform=ax_rca.transAxes)
