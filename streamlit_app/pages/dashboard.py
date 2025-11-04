@@ -1435,6 +1435,8 @@ elif menu == "Analytics":
     except Exception as e:
         st.error(f"Error connecting to API for call records: {e}")
 
+
+
     col_left, col_right = st.columns(2)
 
     # 1. Sentiment Pie Chart
@@ -1525,6 +1527,59 @@ elif menu == "Analytics":
             ax2.axis('off')
 
         st.pyplot(fig2)
+
+    st.markdown("---")
+    if st.button("🔬 Run Root Cause Analysis on Negative Calls"):
+        with st.spinner("Analyzing negative call records... This may take a moment."):
+            try:
+                res = requests.post(f"{API_URL}/patient/run-root-cause-analysis")
+                if res.status_code == 200:
+                    st.success(res.json().get("message", "Analysis complete!"))
+                else:
+                    st.error(f"Analysis failed: {res.text}")
+            except Exception as e:
+                st.error(f"Error connecting to analysis API: {e}")
+
+    root_cause_data = {}
+    try:
+        rca_res = requests.get(f"{API_URL}/patient/negative-experience-drivers")
+        if rca_res.status_code == 200:
+            root_cause_data = rca_res.json()
+    except Exception as e:
+        st.error(f"Error connecting to API for root cause data: {e}")
+
+    col_rca, col_non_rca = st.columns(2)
+    with col_rca:
+        st.subheader("Top Drivers of Negative Experience")
+        fig_rca, ax_rca = plt.subplots(facecolor='white')
+        ax_rca.set_facecolor('white')
+
+        if root_cause_data:
+            labels = list(root_cause_data.keys())
+            sizes = list(root_cause_data.values())
+            colors = plt.cm.Blues_r([x / len(labels) for x in range(len(labels))])
+
+            if any(s > 0 for s in sizes):
+                ax_rca.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90,
+                           colors=colors,
+                           textprops={'color': 'black', 'fontsize': 12, 'weight': 'bold'})
+                ax_rca.axis('equal')
+            else:
+                # Use the corrected text call
+                ax_rca.text(0.5, 0.5, 'No Negative Data Analyzed',
+                            horizontalalignment='center', verticalalignment='center',
+                            color='black', transform=ax_rca.transAxes)
+                ax_rca.axis('off')
+        else:
+            # Use the corrected text call
+            ax_rca.text(0.5, 0.5, 'No Data Available or Analysis Not Run',
+                        horizontalalignment='center', verticalalignment='center',
+                        color='black', transform=ax_rca.transAxes)
+            ax_rca.axis('off')
+        st.pyplot(fig_rca)
+
+    with col_non_rca:
+        pass
 
 elif menu == "Logout":
     st.session_state.clear()
