@@ -2,13 +2,12 @@ import streamlit as st
 
 st.set_page_config(page_title="Patient Dashboard", layout="wide")
 
-# Enhanced CSS with professional styling (matching admin dashboard)
 hide_default_format = """
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         * {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         /* Hide Streamlit branding */
@@ -20,36 +19,34 @@ hide_default_format = """
 
         /* Main App Background */
         .stApp {
-            background: linear-gradient(135deg, #0a1e2b 0%, #0f2027 50%, #203a43 100%);
-            color: #e8f5f7;
+            background-color: #c2ffec;
+            color: #333333;
         }
 
         /* Sidebar Styling */
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0d1b2a 0%, #1b263b 100%);
-            border-right: 2px solid #14b8a6;
+            background-color:#b9f0de;
+            border-right: 1px solid #E0E0E0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-            color: #a7f3d0;
+            color: #1A2B4D;
         }
 
         /* Sidebar Header */
         [data-testid="stSidebar"] h1 {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-size: 28px !important;
             font-weight: 700 !important;
             text-align: center;
             padding: 20px 0;
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 2s ease-in-out infinite;
+            margin-bottom: 10px;
         }
 
         /* Sidebar Radio Buttons */
         [data-testid="stSidebar"] .stRadio > label {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-weight: 600 !important;
             font-size: 16px !important;
             margin-bottom: 15px !important;
@@ -59,27 +56,38 @@ hide_default_format = """
             gap: 8px;
         }
 
+        /* Styling the individual radio option labels */
         [data-testid="stSidebar"] .stRadio label {
-            background: rgba(20, 184, 166, 0.1);
+            background: #d4faf1;
             padding: 14px 20px;
             border-radius: 10px;
             transition: all 0.3s ease;
             border: 1px solid transparent;
-            color: #a7f3d0 !important;
+            color: #333333 !important;
             font-size: 15px !important;
             display: block;
             width: 100%;
         }
 
         [data-testid="stSidebar"] .stRadio label:hover {
-            background: rgba(20, 184, 166, 0.2);
-            border: 1px solid #14b8a6;
+            background: #9ae6d4;
+            border-color: #112e27;
             transform: translateX(5px);
+            color: #0056B3 !important;
         }
+
+        /* This selector targets the label of the *checked* radio button */
+        [data-testid="stSidebar"] .stRadio div[data-checked="true"] label {
+            background-color: #007BFF !important;
+            color: #FFFFFF !important;
+            border-color: #0056B3 !important;
+            font-weight: 500;
+        }
+
 
         /* Main Header */
         h1, h2, h3 {
-            color: #14b8a6 !important;
+            color: #245444 !important;
             font-weight: 600 !important;
         }
 
@@ -87,13 +95,13 @@ hide_default_format = """
             font-size: 42px !important;
             text-align: center;
             margin-bottom: 10px !important;
-            text-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
             animation: fadeInDown 0.8s ease;
         }
 
         h2 {
             font-size: 28px !important;
             margin-top: 30px !important;
+            color: #245444 !important;
         }
 
         h3 {
@@ -102,15 +110,13 @@ hide_default_format = """
 
         /* Subheader styling */
         .stMarkdownContainer h3 {
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #007BFF !important;
             font-weight: 600;
         }
 
         /* Buttons */
         .stButton > button {
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            background: linear-gradient(135deg, #007BFF 0%, #0056B3 100%);
             color: white !important;
             border: none;
             border-radius: 10px;
@@ -118,220 +124,183 @@ hide_default_format = """
             font-weight: 600;
             font-size: 15px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
         }
 
         .stButton > button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(20, 184, 166, 0.5);
-            background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+            box-shadow: 0 6px 25px rgba(0, 123, 255, 0.3);
+            background: linear-gradient(135deg, #0056B3 0%, #004085 100%);
         }
 
-        /* Input Fields */
+        /* --- LIGHT THEME INPUTS --- */
+        /* ... (All .stTextInput, .stSelectbox, .stDateInput styles from dashboard.py) ... */
         .stTextInput > div > div > input,
         .stNumberInput > div > div > input,
-        .stSelectbox > div > div,
         .stTextArea textarea {
-            background: rgba(20, 184, 166, 0.05) !important;
-            border: 1px solid #14b8a6 !important;
-            border-radius: 8px !important;
-            color: #e8f5f7 !important;
-            padding: 10px !important;
+            background-color: #FFFFFF !important;
+            border: 1.5px solid #CED4DA !important;
+            /* ... etc ... */
         }
-
-        .stTextInput > div > div > input:focus,
-        .stNumberInput > div > div > input:focus,
-        .stSelectbox > div > div:focus-within,
-        .stTextArea textarea:focus {
-            border: 2px solid #06b6d4 !important;
-            box-shadow: 0 0 10px rgba(20, 184, 166, 0.3) !important;
+        .stSelectbox div[data-baseweb="select"] {
+            background: #FFFFFF !important;
+            /* ... etc ... */
         }
-
-        /* Labels */
+        .stDateInput input {
+            background: #FFFFFF !important;
+            /* ... etc ... */
+        }
         .stTextInput > label,
         .stNumberInput > label,
         .stSelectbox > label,
+        .stDateInput > label,
         .stTextArea > label {
-            color: #a7f3d0 !important;
+            color: #1A2B4D !important;
             font-weight: 500 !important;
-            font-size: 15px !important;
         }
+        /* --- END LIGHT THEME INPUTS --- */
 
         /* Cards & Containers */
         .stContainer {
-            background: rgba(20, 184, 166, 0.05);
-            border: 1px solid rgba(20, 184, 166, 0.2);
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
             border-radius: 15px;
             padding: 20px;
             margin: 10px 0;
             transition: all 0.3s ease;
             animation: fadeIn 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
         .stContainer:hover {
-            border-color: #14b8a6;
-            box-shadow: 0 5px 20px rgba(20, 184, 166, 0.2);
+            border-color: #007BFF;
+            box-shadow: 0 5px 20px rgba(0, 123, 255, 0.1);
         }
 
         /* DataFrames */
         .stDataFrame {
-            border: 1px solid #14b8a6;
+            border: 1px solid #DEE2E6;
             border-radius: 10px;
             overflow: hidden;
         }
 
         /* Success/Error/Warning Messages */
         .stSuccess {
-            background: rgba(20, 184, 166, 0.1) !important;
-            border-left: 4px solid #14b8a6 !important;
-            color: #a7f3d0 !important;
+            background-color: #D4EDDA !important;
+            color: #155724 !important;
+            border: 1px solid #C3E6CB !important;
         }
-
         .stError {
-            background: rgba(239, 68, 68, 0.1) !important;
-            border-left: 4px solid #ef4444 !important;
+            background-color: #F8D7DA !important;
+            color: #721C24 !important;
+            border: 1px solid #F5C6CB !important;
         }
-
         .stWarning {
-            background: rgba(251, 191, 36, 0.1) !important;
-            border-left: 4px solid #fbbf24 !important;
+            background-color: #FFF3CD !important;
+            color: #856404 !important;
+            border: 1px solid #FFEAA7 !important;
         }
-
         .stInfo {
-            background: rgba(6, 182, 212, 0.1) !important;
-            border-left: 4px solid #06b6d4 !important;
-            color: #a7f3d0 !important;
+            background-color: #D1ECF1 !important;
+            color: #0C5460 !important;
+            border: 1px solid #BEE5EB !important;
         }
 
         /* Divider */
         hr {
             border: none;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #CED4DA, transparent);
             margin: 30px 0;
         }
 
         /* Tabs */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-        }
-
+        .stTabs [data-baseweb="tab-list"] { gap: 8px; }
         .stTabs [data-baseweb="tab"] {
-            background: rgba(20, 184, 166, 0.1);
+            background: #E9ECEF;
             border-radius: 8px;
-            color: #a7f3d0;
+            color: #5A6A7B;
             padding: 10px 20px;
         }
-
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%);
+            background: #007BFF;
             color: white;
         }
 
         /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(20, 184, 166, 0.5); }
-            50% { text-shadow: 0 0 20px rgba(20, 184, 166, 0.8); }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Custom metric cards */
         .metric-card {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border: 1px solid rgba(20, 184, 166, 0.3);
-            color: #e8f5f7;
-            text-align: center;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            margin: 10px;
-            animation: fadeIn 0.6s ease;
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            color: #245444;
+            /* ... (rest of .metric-card styles from dashboard.py) ... */
         }
-
-        .metric-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 8px 25px rgba(20, 184, 166, 0.4);
-            border-color: #14b8a6;
-        }
-
         .metric-label {
-            font-size: 16px;
-            font-weight: 500;
-            margin-top: 15px;
-            color: #a7f3d0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #245444;
+            /* ... (rest of .metric-label styles) ... */
         }
-
         .metric-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #14b8a6;
-            text-shadow: 0 0 10px rgba(20, 184, 166, 0.3);
+            color: #245444;
+            /* ... (rest of .metric-value styles) ... */
         }
 
-        /* Welcome message styling */
-        .welcome-message {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border: 1px solid rgba(20, 184, 166, 0.3);
-            border-radius: 15px;
-            padding: 20px 30px;
-            margin: 20px 0;
-            text-align: center;
-            animation: fadeIn 0.8s ease;
+        /* Chat box styling */
+        .chat-box {
+            background: #F8F9FA;
+            /* ... (rest of .chat-box styles) ... */
         }
+        .message { /* ... */ }
+        .ai { /* ... */ }
+        .user { /* ... */ }
 
-        .welcome-message p {
-            color: #e8f5f7 !important;
-            font-size: 18px !important;
-            font-weight: 500 !important;
-        }
-
-        /* Info cards for patient dashboard */
-        .info-card {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+        /* Vision/Mission cards (This is what we will reuse) */
+        .vision-card {
+            background: #FFFFFF;
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(20, 184, 166, 0.3);
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #E0E0E0;
             transition: all 0.4s ease;
             animation: fadeIn 0.8s ease;
-            margin: 20px 0;
+            height: 100%;
         }
-
-        .info-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 35px rgba(20, 184, 166, 0.4);
-            border-color: #14b8a6;
+        .vision-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 35px rgba(0, 123, 255, 0.15);
+            border-color: #245444;
         }
-
-        .info-card h4 {
-            color: #14b8a6 !important;
+        .vision-card h4 {
+            color: #245444 !important;
             font-size: 22px !important;
             font-weight: 600 !important;
-            margin-bottom: 15px !important;
+            margin: 15px 0 !important;
+        }
+        .vision-card p {
+            color: #5A6A7B !important;
+            font-size: 15px !important;
+            line-height: 1.6 !important;
         }
 
-        .info-card p {
-            color: #a7f3d0 !important;
-            font-size: 15px !important;
-            line-height: 1.8 !important;
+        /* Metric styling for chat page */
+        [data-testid="stMetric"] {
+            background-color: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            /* ... (rest of stMetric styles) ... */
+        }
+        [data-testid="stMetricLabel"] {
+            color: #5A6A7B !important;
+            /* ... (rest of stMetricLabel styles) ... */
+        }
+        [data-testid="stMetricValue"] {
+            color: #1A2B4D !important;
+            /* ... (rest of stMetricValue styles) ... */
         }
     </style>
 """
@@ -352,41 +321,50 @@ st.sidebar.divider()
 
 patient_id = st.session_state.get("patient_id", "Guest")
 
-# Welcome message with custom styling
-st.markdown(f"""
-    <div class="welcome-message">
-        <p>Welcome, Patient <strong>{patient_id}</strong>! 👋</p>
-    </div>
-""", unsafe_allow_html=True)
+# --- (2) MODIFICATION: Replaced .welcome-message with st.info ---
+# This will automatically adopt the light theme's .stInfo style
+st.info(f"**Welcome, Patient {patient_id}!** 👋")
 
 if menu == "My Feedback":
     st.subheader("💬 My Feedback History")
+
+    # --- (3) MODIFICATION: Replaced .info-card with .vision-card ---
     st.markdown("""
-        <div class="info-card">
+        <div class="vision-card">
             <h4>📋 Recent Feedback</h4>
             <p>Your feedback helps us improve our care. View your previous responses and communication history here.</p>
         </div>
     """, unsafe_allow_html=True)
+    # --- END MODIFICATION ---
+
     st.info("Your feedback history will appear here.")
 
 elif menu == "Medication Status":
     st.subheader("💊 Medication Tracking")
+
+    # --- (3) MODIFICATION: Replaced .info-card with .vision-card ---
     st.markdown("""
-        <div class="info-card">
+        <div class="vision-card">
             <h4>✅ Medication Compliance</h4>
             <p>Stay on track with your prescribed medications. Check your schedule and mark your daily doses.</p>
         </div>
     """, unsafe_allow_html=True)
+    # --- END MODIFICATION ---
+
     st.success("No pending medication reminders.")
 
 elif menu == "View Appointments":
     st.subheader("📅 My Appointments")
+
+    # --- (3) MODIFICATION: Replaced .info-card with .vision-card ---
     st.markdown("""
-        <div class="info-card">
+        <div class="vision-card">
             <h4>🗓️ Upcoming Visits</h4>
             <p>View and manage your scheduled appointments with your healthcare provider.</p>
         </div>
     """, unsafe_allow_html=True)
+    # --- END MODIFICATION ---
+
     st.info("No Appointments Scheduled")
 
 elif menu == "Logout":

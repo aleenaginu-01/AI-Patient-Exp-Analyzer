@@ -184,8 +184,8 @@ hide_default_format = """
 
         /* Buttons */
         .stButton > button {
-            background: linear-gradient(135deg, #007BFF 0%, #0056B3 100%);
-            color: white !important;
+            background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%);
+            color: black !important;
             border: none;
             border-radius: 10px;
             padding: 12px 28px;
@@ -198,7 +198,7 @@ hide_default_format = """
         .stButton > button:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 25px rgba(0, 123, 255, 0.3);
-            background: linear-gradient(135deg, #0056B3 0%, #004085 100%);
+            background: linear-gradient(135deg, #1c8065 0%, #62b59f 100%);
         }
 
         /* --- LIGHT THEME INPUT FIELDS --- */
@@ -403,13 +403,13 @@ hide_default_format = """
 
         /* File Uploader */
         [data-testid="stFileUploader"] {
-            background: #F8F9FA;
-            border: 2px dashed #007BFF;
+            background: white;
+            border: 2px dashed green;
             border-radius: 10px;
             padding: 20px;
         }
         [data-testid="stFileUploader"] * {
-            color: #333333;
+            color: white;
         }
 
         /* Tabs */
@@ -623,9 +623,9 @@ hide_default_format = """
         margin-top: 10px;
     }
     /* --- Add Patient Submit Button Style --- */
-    .add-patient-form-button .stButton > button {
+    .stFormSubmitButton > button {
         width: 100%; 
-        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%) !important;
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%);
         color: black !important;
         border: none;
         padding: 16px 30px;
@@ -636,6 +636,11 @@ hide_default_format = """
         transition: all 0.3s ease;
         box-shadow: 0 6px 20px rgba(98, 181, 159, 0.3); /* I updated the shadow color for you */
     }
+    .stFormSubmitButton > button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0, 123, 255, 0.3);
+            background: linear-gradient(135deg, #1c8065 0%, #62b59f 100%);
+        }
         </style> 
 """
 st.markdown(hide_default_format, unsafe_allow_html=True)
@@ -706,10 +711,7 @@ if menu == "Add Patients":
         visit_date = st.date_input("Visit Date", value=date.today())
         pre_medi = st.text_input("Prescribed Medication (comma-separated)")
         next_visit_date = st.date_input("Next Visit Date", value=date.today())
-        st.markdown('<div class="add-patient-form-button">', unsafe_allow_html=True)
         submitted = st.form_submit_button("Add Patient")
-        st.markdown('</div>', unsafe_allow_html=True)
-        # submitted = st.form_submit_button("Add Patient")
         if submitted:
             if not name.strip() or not phone.strip() or not disease.strip() or not pre_medi.strip() or age == 0:
                 st.error("⚠️ All fields are required. Please fill in all details and set a valid age.")
