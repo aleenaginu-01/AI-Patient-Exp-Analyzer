@@ -9,6 +9,8 @@ from datetime import datetime, date
 import os
 from collections import Counter
 from dotenv import load_dotenv
+import math
+import json
 
 load_dotenv(override=True)
 API_URL = os.getenv("API_URL")
@@ -59,8 +61,11 @@ def get_side_effects_display(reported: bool) -> str:
         return "❗ Reported"  # Exclamation for reported
     return "➖ None Reported"
 
-
 # --- END HELPER ---
+if "patient_list_page" not in st.session_state:
+    st.session_state.patient_list_page = 0
+if "edit_patient_id" not in st.session_state:
+    st.session_state.edit_patient_id = None
 
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
 
@@ -948,103 +953,134 @@ elif menu == "Dashboard":
 elif menu == "Patient List":
     st.subheader("📋 Patient List")
 
-    response = requests.get(f"{API_URL}/patient")
-    if response.status_code in (200, 201):
+    try:
+        response = requests.get(f"{API_URL}/patient")
+        response.raise_for_status()
         patients = response.json()
 
-        if not patients:
-            st.info("No patients found.")
-        else:
-            if "edit_patient_id" not in st.session_state:
-                st.session_state.edit_patient_id = None
 
-            # Create header row
-            st.markdown("---")
-            header_cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.2])
-            header_cols[0].markdown("**Name**")
-            header_cols[1].markdown("**Age**")
-            header_cols[2].markdown("**Gender**")
-            header_cols[3].markdown("**Phone**")
-            header_cols[4].markdown("**Disease**")
-            header_cols[5].markdown("**Visit Date**")
-            header_cols[6].markdown("**Medication**")
-            header_cols[7].markdown("**Next Visit**")
-            header_cols[8].markdown("**Actions**")
-            st.markdown("---")
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error fetching patient data: {e}")
+        patients = []
+    except json.JSONDecodeError:
+        st.error("Error decoding patient data from API.")
+        patients = []
+    if not patients:
+        st.info("No patients found.")
+    else:
+        PAGE_SIZE = 5
+        total_patients = len(patients)
+        total_pages = math.ceil(total_patients / PAGE_SIZE)
+        current_page = st.session_state.patient_list_page
+        if current_page >= total_pages:  # Adjust if page is out of bounds (e.g., after deletion)
+            current_page = max(0, total_pages - 1)
+            st.session_state.patient_list_page = current_page
+        start_index = current_page * PAGE_SIZE
+        end_index = min(start_index + PAGE_SIZE, total_patients)  # Use min to avoid out-of-bounds
+        patients_to_display = patients[start_index:end_index]  # Get the slice for the current page
 
-            for patient in patients:
-                cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.2])
 
-                cols[0].write(patient["name"])
-                cols[1].write(patient["age"])
-                cols[2].write(patient["gender"])
-                cols[3].write(patient["phone"])
-                cols[4].write(patient["disease"])
-                cols[5].write(patient["visit_date"])
-                cols[6].write(", ".join(patient["prescribed_medication"]))
-                cols[7].write(patient["next_visit_date"])
+        st.markdown("---")
+        header_cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.2])
+        header_cols[0].markdown("**Name**")
+        header_cols[1].markdown("**Age**")
+        header_cols[2].markdown("**Gender**")
+        header_cols[3].markdown("**Phone**")
+        header_cols[4].markdown("**Disease**")
+        header_cols[5].markdown("**Visit Date**")
+        header_cols[6].markdown("**Medication**")
+        header_cols[7].markdown("**Next Visit**")
+        header_cols[8].markdown("**Actions**")
+        st.markdown("---")
 
-                with cols[8]:
-                    col_edit, col_delete = st.columns(2)
-                    with col_edit:
-                        edit_btn = st.button("✏️", key=f"edit_{patient['_id']}", help="Edit Patient")
-                    with col_delete:
-                        delete_btn = st.button("🗑️", key=f"delete_{patient['_id']}", help="Delete Patient")
+        if not patients_to_display and total_patients > 0:
+            st.warning(f"No patients to display on this page. Resetting to page 1.")
+            st.session_state.patient_list_page = 0
+            st.rerun()
 
-                if edit_btn:
-                    st.session_state.edit_patient_id = patient["_id"]
+        for patient in patients_to_display:
+            cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.2])
+
+            cols[0].write(patient["name"])
+            cols[1].write(patient["age"])
+            cols[2].write(patient["gender"])
+            cols[3].write(patient["phone"])
+            cols[4].write(patient["disease"])
+            cols[5].write(patient["visit_date"])
+            cols[6].write(", ".join(patient["prescribed_medication"]))
+            cols[7].write(patient["next_visit_date"])
+
+            with cols[8]:
+                col_edit, col_delete = st.columns(2)
+                with col_edit:
+                    edit_btn = st.button("✏️", key=f"edit_{patient['_id']}", help="Edit Patient")
+                with col_delete:
+                    delete_btn = st.button("🗑️", key=f"delete_{patient['_id']}", help="Delete Patient")
+
+            if edit_btn:
+                st.session_state.edit_patient_id = patient["_id"]
+                st.rerun()
+
+            if delete_btn:
+                delete_response = requests.delete(f"{API_URL}/patient/{patient['_id']}")
+                if delete_response.status_code in (200, 204):
+                    st.warning(f"🗑️ Deleted {patient['name']} successfully!")
+                    st.session_state.edit_patient_id = None
                     st.rerun()
+                else:
+                    st.error("❌ Failed to delete patient.")
 
-                if delete_btn:
-                    delete_response = requests.delete(f"{API_URL}/patient/{patient['_id']}")
-                    if delete_response.status_code in (200, 204):
-                        st.warning(f"🗑️ Deleted {patient['name']} successfully!")
-                        st.session_state.edit_patient_id = None
-                        st.rerun()
-                    else:
-                        st.error("❌ Failed to delete patient.")
+        st.markdown("---")
+        nav_cols = st.columns([1, 2, 1])
 
-            if st.session_state.edit_patient_id:
-                st.markdown("---")
-                patient_to_edit = next(
+        with nav_cols[0]:
+            if st.button("⬅️ Previous", use_container_width=True, disabled=(current_page == 0)):
+                st.session_state.patient_list_page -= 1
+                st.rerun()
+
+        with nav_cols[1]:
+            st.markdown(
+                f"<p style='text-align: center; color: #333; font-weight: 500;'>Page {current_page + 1} of {total_pages}</p>",unsafe_allow_html=True)
+
+        with nav_cols[2]:
+            if st.button("Next ➡️", use_container_width=True, disabled=(current_page >= total_pages - 1)):
+                st.session_state.patient_list_page += 1
+                st.rerun()
+
+        if st.session_state.edit_patient_id:
+            st.markdown("---")
+            patient_to_edit = next(
                     (p for p in patients if p["_id"] == st.session_state.edit_patient_id),
-                    None
-                )
-                if patient_to_edit:
-                    with st.form(f"edit_form_{patient_to_edit['_id']}"):
-                        st.subheader(f"✏️ Edit Details for {patient_to_edit['name']}")
-                        name = st.text_input("Name", value=patient_to_edit["name"])
-                        age = st.number_input("Age", min_value=0, max_value=120, value=patient_to_edit["age"])
-                        gender = st.selectbox(
-                            "Gender", ["Male", "Female"],
-                            index=0 if patient_to_edit["gender"] == "Male" else 1
-                        )
-                        phone = st.text_input("Phone", value=patient_to_edit["phone"])
-                        disease = st.text_input("Disease", value=patient_to_edit["disease"])
-                        try:
-                            visit_date_default = datetime.strptime(patient_to_edit["visit_date"], "%Y-%m-%d").date()
-                        except:
-                            visit_date_default = date.today()
-                        visit_date = st.date_input("Visit Date", value=visit_date_default)
-                        prescribed_medication = st.text_area(
-                            "Prescribed Medication (comma-separated)",
-                            value=", ".join(patient_to_edit["prescribed_medication"])
-                        )
-                        try:
-                            next_visit_default = datetime.strptime(patient_to_edit["next_visit_date"],
+                    None)
+            if patient_to_edit:
+                with st.form(f"edit_form_{patient_to_edit['_id']}"):
+                    st.subheader(f"✏️ Edit Details for {patient_to_edit['name']}")
+                    name = st.text_input("Name", value=patient_to_edit["name"])
+                    age = st.number_input("Age", min_value=0, max_value=120, value=patient_to_edit["age"])
+                    gender = st.selectbox("Gender", ["Male", "Female"],index=0 if patient_to_edit["gender"] == "Male" else 1)
+                    phone = st.text_input("Phone", value=patient_to_edit["phone"])
+                    disease = st.text_input("Disease", value=patient_to_edit["disease"])
+                    try:
+                        visit_date_default = datetime.strptime(patient_to_edit["visit_date"], "%Y-%m-%d").date()
+                    except:
+                        visit_date_default = date.today()
+                    visit_date = st.date_input("Visit Date", value=visit_date_default)
+                    prescribed_medication = st.text_area("Prescribed Medication (comma-separated)",value=", ".join(patient_to_edit["prescribed_medication"]))
+                    try:
+                        next_visit_default = datetime.strptime(patient_to_edit["next_visit_date"],
                                                                    "%Y-%m-%d").date()
-                        except:
-                            next_visit_default = None
-                        next_visit_date = st.date_input("Next Visit Date", value=next_visit_default)
+                    except:
+                        next_visit_default = None
+                    next_visit_date = st.date_input("Next Visit Date", value=next_visit_default)
 
-                        col_update, col_cancel = st.columns(2)
-                        with col_update:
-                            submit_edit = st.form_submit_button("Update Patient")
-                        with col_cancel:
-                            cancel_edit = st.form_submit_button("Cancel")
+                    col_update, col_cancel = st.columns(2)
+                    with col_update:
+                        submit_edit = st.form_submit_button("Update Patient")
+                    with col_cancel:
+                        cancel_edit = st.form_submit_button("Cancel")
 
-                        if submit_edit:
-                            updated_data = {
+                    if submit_edit:
+                        updated_data = {
                                 "name": name,
                                 "age": age,
                                 "gender": gender,
@@ -1054,21 +1090,19 @@ elif menu == "Patient List":
                                 "prescribed_medication": [pm.strip() for pm in prescribed_medication.split(",")],
                                 "next_visit_date": str(next_visit_date)
                             }
-                            update_response = requests.put(
+                        update_response = requests.put(
                                 f"{API_URL}/patient/{patient_to_edit['_id']}", json=updated_data
                             )
-                            if update_response.status_code in (200, 201):
-                                st.success(f"✅ {name} updated successfully!")
-                                st.session_state.edit_patient_id = None
-                                st.rerun()
-                            else:
-                                st.error("Failed to update patient details.")
-
-                        if cancel_edit:
+                        if update_response.status_code in (200, 201):
+                            st.success(f"✅ {name} updated successfully!")
                             st.session_state.edit_patient_id = None
                             st.rerun()
-    else:
-        st.error("Error fetching patient data.")
+                        else:
+                            st.error("Failed to update patient details.")
+
+                    if cancel_edit:
+                        st.session_state.edit_patient_id = None
+                        st.rerun()
 
 elif menu == "Start Patient Follow-Up":
     st.subheader("📞 Start Patient Follow-Up")
