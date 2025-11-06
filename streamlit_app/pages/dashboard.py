@@ -203,15 +203,48 @@ hide_default_format = """
 
         /* --- LIGHT THEME INPUT FIELDS --- */
 
+                /* Text/Number/Textarea Inputs */
         /* Text/Number/Textarea Inputs */
         .stTextInput > div > div > input,
-        .stNumberInput > div > div > input,
         .stTextArea textarea {
             background-color: #FFFFFF !important;
             border: 1.5px solid #CED4DA !important;
             border-radius: 10px !important;
             color: #333333 !important;
             padding: 10px !important;
+        }
+        
+        /* NUMBER INPUT - Comprehensive Fix */
+        /* Target all divs in the number input container */
+        .stNumberInput > div,
+        .stNumberInput > div > div,
+        .stNumberInput > div > div > div {
+            background-color: #FFFFFF !important;
+        }
+        
+        /* The actual input field */
+        .stNumberInput input {
+            background-color: #FFFFFF !important;
+            border: 1.5px solid #CED4DA !important;
+            border-radius: 10px !important;
+            color: #333333 !important;
+            padding: 10px !important;
+        }
+        
+        /* The container with buttons */
+        .stNumberInput div[data-baseweb="input"] {
+            background-color: #FFFFFF !important;
+        }
+        
+        /* Number input buttons (+ and -) */
+        .stNumberInput button {
+            background-color: #E9ECEF !important;
+            color: #333333 !important;
+            border: none !important;
+        }
+        
+        .stNumberInput button:hover {
+            background-color: #DEE2E6 !important;
         }
 
         /* Selectbox Container */
@@ -641,6 +674,38 @@ hide_default_format = """
             box-shadow: 0 6px 25px rgba(0, 123, 255, 0.3);
             background: linear-gradient(135deg, #1c8065 0%, #62b59f 100%);
         }
+                .stNumberInput {
+            pointer-events: none; /* Disable interaction in display mode */
+        }
+        
+        /* If age is being displayed in a table/list, force plain text styling */
+        [data-testid="stNumberInput"] div[data-baseweb="input"] {
+            background-color: transparent !important;
+            border: none !important;
+        }
+        
+        [data-testid="stNumberInput"] input {
+            background-color: transparent !important;
+            border: none !important;
+            color: #333333 !important;
+            padding: 0 !important;
+            font-size: inherit !important;
+        }
+        
+        [data-testid="stNumberInput"] button {
+            display: none !important; /* Hide + and - buttons */
+        }
+        /* Compact icon buttons for patient list actions */
+    .stButton > button[kind="secondary"] {
+        padding: 8px 12px !important;
+        min-height: 38px !important;
+        font-size: 18px !important;
+    }
+
+    /* Remove extra padding around action buttons */
+    div[data-testid="column"] > div > div > div > .stButton {
+        margin: 0 !important;
+    }
         </style> 
 """
 st.markdown(hide_default_format, unsafe_allow_html=True)
@@ -983,7 +1048,7 @@ elif menu == "Patient List":
 
 
         st.markdown("---")
-        header_cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.2])
+        header_cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.5])
         header_cols[0].markdown("**Name**")
         header_cols[1].markdown("**Age**")
         header_cols[2].markdown("**Gender**")
@@ -1001,10 +1066,11 @@ elif menu == "Patient List":
             st.rerun()
 
         for patient in patients_to_display:
-            cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.2])
+            cols = st.columns([2, 0.8, 1.2, 2, 2, 1.8, 3, 1.8, 1.5])
 
             cols[0].write(patient["name"])
-            cols[1].write(patient["age"])
+            cols[1].markdown(f"<span style='color: #333333;'>{patient['age']}</span>", unsafe_allow_html=True)
+            # cols[1].write(patient["age"])
             cols[2].write(patient["gender"])
             cols[3].write(patient["phone"])
             cols[4].write(patient["disease"])
@@ -1013,6 +1079,7 @@ elif menu == "Patient List":
             cols[7].write(patient["next_visit_date"])
 
             with cols[8]:
+                # st.markdown('<div style="display: flex; gap: 5px; justify-content: center;">', unsafe_allow_html=True)
                 col_edit, col_delete = st.columns(2)
                 with col_edit:
                     edit_btn = st.button("✏️", key=f"edit_{patient['_id']}", help="Edit Patient")
