@@ -48,8 +48,8 @@ st.markdown("""
         padding: 40px;
         margin: 20px auto;
         max-width: 1200px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); /* Softer shadow */
-        border: 1px solid #E9ECEF; /* Subtle border */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        border: 1px solid #E9ECEF;
         animation: fadeInUp 0.8s ease-out;
     }
 
@@ -63,17 +63,17 @@ st.markdown("""
     .logo {
         font-size: 48px;
         font-weight: 700;
-        color:  #245444; /* Dark, legible title color */
+        color:  #245444;
         margin-bottom: 10px;
     }
 
     .tagline {
-        color: #5A6A7B; /* Dark, legible subtitle color */
+        color: #5A6A7B;
         font-size: 18px;
         font-weight: 400;
     }
 
-    /* Stats Cards (Accent color used well) */
+    /* Stats Cards */
     .stats-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -118,21 +118,19 @@ st.markdown("""
         margin-top: 40px;
     }
 
-    /* REFINED: Feature card with clean border and shadow as requested */
     .feature-card {
         background: #d4faf1;
         border-radius: 15px;
         padding: 30px;
-        border: 1px solid #E0E0E0; /* Requested subtle border */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Requested subtle shadow */
+        border: 1px solid #E0E0E0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
         animation: fadeInUp 0.8s ease-out;
     }
 
-    /* REFINED: Hover state uses consistent accent color */
     .feature-card:hover {
-        border-color:  #245444; /* Use primary accent color */
-        box-shadow: 0 6px 16px rgba(78, 195, 245, 0.15); /* Accent shadow */
+        border-color:  #245444;
+        box-shadow: 0 6px 16px rgba(78, 195, 245, 0.15);
         transform: translateY(-5px);
     }
 
@@ -144,32 +142,17 @@ st.markdown("""
     .feature-title {
         font-size: 20px;
         font-weight: 600;
-        color:  #245444; /* Dark, legible */
+        color:  #245444;
         margin-bottom: 10px;
     }
 
     .feature-desc {
-        color:  #245444; /* Dark, legible */
+        color:  #245444;
         font-size: 14px;
         line-height: 1.6;
     }
 
     /* --- LOGIN FORM STYLES --- */
-    /* REFINED: Softer shadow and cleaner border */
-    # .login-container {
-    #     max-width: 480px;
-    #     margin: 50px auto;
-    #     background: #FFFFFF;
-    #     border-radius: 24px;
-    #     padding: 50px 45px;
-    #     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06); /* Softer shadow */
-    #     border: 1px solid #E9ECEF; /* Cleaner border */
-    #     animation: fadeInUp 0.6s ease-out;
-    #     display: flex;
-    #     flex-direction: column;
-    #     align-items: center;
-    # }
-
     .login-header {
         text-align: center;
         margin-bottom: 40px;
@@ -189,28 +172,185 @@ st.markdown("""
         margin-top: 10px;
     }
 
-    /* LIGHT INPUT FIELDS - Professional Healthcare Theme (Already excellent) */
+    /* --- CORRECTED STYLES FOR ALL INPUTS (Light Theme) --- */
+
+    /* Text Inputs */
     .stTextInput > div > div > input,
-    .stSelectbox > div > div > select {
+    .stTextArea textarea { 
         background-color: white !important;
         border: 1.5px solid #E1E8ED !important;
         border-radius: 12px !important;
         padding: 14px 18px !important;
         font-size: 15px !important;
-        color: black !important; /* Dark, legible input text */
+        color: black !important; /* Black text */
         transition: all 0.3s ease !important;
         font-weight: 400 !important;
         max-width: 400px !important;
         margin: 0 auto !important;
     }
 
+    /* Corrected stSelectbox Styling */
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #FFFFFF !important;
+        border: 1.5px solid #E1E8ED !important;
+        border-radius: 12px !important;
+        font-size: 15px !important;
+        font-weight: 400 !important;
+        transition: all 0.3s ease !important;
+        max-width: 400px !important;
+        margin: 0 auto !important;
+        padding: 0 !important; 
+    }
+    
+    .stSelectbox div[data-baseweb="select"] > div {
+        background-color: transparent !important; 
+        border: none !important;
+        padding: 14px 18px !important;
+        padding-right: 45px !important; 
+    }
+    
+    /* This rule makes the selected text visible */
+    .stSelectbox div[data-baseweb="select"] * {
+        color: black !important;
+    }
+
+    /* Focus state for Selectbox */
+    .stSelectbox div[data-baseweb="select"]:focus-within {
+        background-color: #FFFFFF !important;
+        border-color: #4ec3f5 !important;
+        box-shadow: 0 0 0 3px rgba(78, 195, 245, 0.1) !important;
+        outline: none !important;
+    }
+
+    /* Dropdown menu popover */
+    div[data-baseweb="popover"] {
+        background: #FFFFFF !important;
+        border: 1px solid #E1E8ED !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-radius: 12px !important;
+    }
+
+    /* Dropdown options */
+    ul[role="listbox"] li[role="option"] {
+        background-color: white !important;
+        color: #2C3E50 !important;
+        font-weight: 400 !important;
+    }
+
+    /* Dropdown options on hover */
+    ul[role="listbox"] li[role="option"]:hover {
+        background-color: #F1F3F5 !important;
+        color: #1A2B4D !important;
+    }
+
+    /* Dropdown options when selected */
+    ul[role="listbox"] li[aria-selected="true"] {
+        background-color: #E0E7FF !important;
+        color: #0056B3 !important;
+    }
+
+    /* --- STYLES FOR stRadio --- */
+    /* --- FIXED STYLES FOR stRadio --- */
+    
+    /* 1. Center the entire radio widget block */
+    div[data-testid="stRadio"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        margin: 20px auto !important;
+        padding-left: 600px;
+    }
+    
+    /* 2. Style the main label ("Select Your Role") */
+    div[data-testid="stRadio"] > label {
+        color: #2C3E50 !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        margin-bottom: 12px !important;
+        letter-spacing: 0.2px !important;
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    /* 3. Style the container holding the options */
+    div[data-testid="stRadio"] > div {
+        width: 100% !important;
+        max-width: 400px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 12px !important;
+        margin: 0 auto !important;
+    }
+    
+    /* 4. Style each individual radio option label */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] {
+        background: #b9f0de !important;
+        border: 1.5px solid #E1E8ED !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        font-size: 15px !important;
+        color: #2C3E50 !important; /* Dark text color - THIS FIXES VISIBILITY */
+        transition: all 0.3s ease !important;
+        font-weight: 500 !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+    }
+    
+    /* 5. Style the text inside the radio label */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div {
+        color: #2C3E50 !important; /* Ensure text is visible */
+        font-weight: 500 !important;
+    }
+    
+    /* 6. Style the HOVERED radio option */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
+        border-color: #0b472a !important;
+        background-color: #b9f0de !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78, 195, 245, 0.15);
+    }
+    
+    /* 7. Style the SELECTED radio option */
+    div[data-testid="stRadio"] input[type="radio"]:checked + div {
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%) !important;
+        color: #1A2B4D !important;
+        border-color: #0b472a !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(98, 181, 159, 0.3) !important;
+    }
+    
+    /* Alternative approach - target by checked state */
+    div[data-testid="stRadio"] label[data-baseweb="radio"][data-checked="true"],
+    div[data-testid="stRadio"] div[data-checked="true"] label {
+        background: linear-gradient(135deg, #8debd2 0%, #62b59f 100%) !important;
+        color: #1A2B4D !important;
+        border-color: #62b59f !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(98, 181, 159, 0.3) !important;
+    }
+    
+    /* 8. Hide the actual radio circle (optional - for cleaner look) */
+    div[data-testid="stRadio"] input[type="radio"] {
+        margin-right: 10px !important;
+    }
+    
+    /* 9. Ensure proper spacing between radio widget and next element */
+    div[data-testid="stRadio"] + .stTextInput {
+        margin-top: 20px !important;
+    }
     /* Center input containers and labels */
     .stTextInput, .stSelectbox {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
     }
-
     .stTextInput > div, .stSelectbox > div {
         width: 100% !important;
         max-width: 400px !important;
@@ -218,49 +358,26 @@ st.markdown("""
         flex-direction: column !important;
         align-items: center !important;
     }
-
     .stTextInput > label, .stSelectbox > label {
         width: 400px !important;
         max-width: 400px !important;
     }
 
-    /* Focus state uses accent color */
-    .stTextInput > div > div > input:focus,
-    .stSelectbox > div > div > select:focus {
+    /* Focus state for Text Input */
+    .stTextInput > div > div > input:focus {
         background-color: #FFFFFF !important;
         border-color: #4ec3f5 !important;
         box-shadow: 0 0 0 3px rgba(78, 195, 245, 0.1) !important;
         outline: none !important;
     }
 
+    /* Placeholder text */
     .stTextInput > div > div > input::placeholder {
         color: #A0AEC0 !important;
         font-weight: 300 !important;
     }
 
-    /* Dropdown styling - WHITE background */
-    .stSelectbox > div > div > select {
-        cursor: pointer !important;
-        appearance: none !important;
-        background-color: #FFFFFF !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A0AEC0' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
-        background-repeat: no-repeat !important;
-        background-position: right 16px center !important;
-        padding-right: 45px !important;
-    }
-
-    /* Light dropdown options */
-    .stSelectbox > div > div > select option {
-        background-color: #FFFFFF !important;
-        color: #2C3E50 !important;
-    }
-
-    .stSelectbox > div > div > select:hover {
-        border-color: #4ec3f5 !important;
-        background-color: #FFFFFF !important;
-    }
-
-    /* Label styling (Dark and legible) */
+    /* Label styling */
     .stTextInput > label,
     .stSelectbox > label {
         color: #2C3E50 !important;
@@ -271,7 +388,7 @@ st.markdown("""
         text-align: center !important;
         width: 100% !important;
     }
-
+    
     /* --------------------------------- */
     /* --- BUTTON STYLES (CLEANED) --- */
     /* --------------------------------- */
@@ -305,6 +422,7 @@ st.markdown("""
         transition: all 0.3s ease;
         box-shadow: 0 6px 20px rgba(78, 195, 245, 0.3);
         letter-spacing: 0.3px;
+        
     }
     
     
@@ -429,7 +547,6 @@ st.markdown("""
             transform: translateX(0);
         }
     }
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -527,7 +644,7 @@ def show_login():
     """, unsafe_allow_html=True)
 
     # Role Selection
-    role = st.selectbox(
+    role = st.radio(
         "Select Your Role",
         ["Patient", "Admin"],
         index=0
