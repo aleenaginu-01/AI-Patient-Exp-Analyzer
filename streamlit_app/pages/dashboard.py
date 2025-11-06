@@ -11,6 +11,7 @@ from collections import Counter
 from dotenv import load_dotenv
 import math
 import json
+import re
 
 load_dotenv(override=True)
 API_URL = os.getenv("API_URL")
@@ -674,27 +675,7 @@ hide_default_format = """
             box-shadow: 0 6px 25px rgba(0, 123, 255, 0.3);
             background: linear-gradient(135deg, #1c8065 0%, #62b59f 100%);
         }
-                .stNumberInput {
-            pointer-events: none; /* Disable interaction in display mode */
-        }
-        
-        /* If age is being displayed in a table/list, force plain text styling */
-        [data-testid="stNumberInput"] div[data-baseweb="input"] {
-            background-color: transparent !important;
-            border: none !important;
-        }
-        
-        [data-testid="stNumberInput"] input {
-            background-color: transparent !important;
-            border: none !important;
-            color: #333333 !important;
-            padding: 0 !important;
-            font-size: inherit !important;
-        }
-        
-        [data-testid="stNumberInput"] button {
-            display: none !important; /* Hide + and - buttons */
-        }
+      
         /* Compact icon buttons for patient list actions */
     .stButton > button[kind="secondary"] {
         padding: 8px 12px !important;
@@ -769,36 +750,84 @@ if menu == "Add Patients":
     st.subheader("Add Patients Details")
     with st.form("add_patient_form"):
         name = st.text_input("Patient Name")
-        age = st.number_input("Age", min_value=0, max_value=120)
+        age = st.number_input("Age", min_value=0, max_value=105,value=0,placeholder="Enter your age(0-105)")
         gender = st.selectbox("Gender", ["Male", "Female"], index=0)
         phone = st.text_input("Phone Number")
         disease = st.text_input("Disease / Condition")
-        visit_date = st.date_input("Visit Date", value=date.today())
+        visit_date = st.date_input("Visit Date", value=date.today(),min_value=date.today())
         pre_medi = st.text_input("Prescribed Medication (comma-separated)")
-        next_visit_date = st.date_input("Next Visit Date", value=date.today())
+        next_visit_date = st.date_input("Next Visit Date",value=(date.today() + pd.Timedelta(days=7)))
         submitted = st.form_submit_button("Add Patient")
         if submitted:
-            if not name.strip() or not phone.strip() or not disease.strip() or not pre_medi.strip() or age == 0:
-                st.error("⚠️ All fields are required. Please fill in all details and set a valid age.")
+            errors = []
+            if not name.strip():
+                errors.append("Patient Name is required.")
+            elif not re.fullmatch(r"[A-Za-z\s]+", name.strip()):
+                errors.append("Patient Name can only contain letters and spaces.")
+            elif name != name.strip():
+                errors.append("Patient Name should not have leading or trailing spaces.")
+
+            if age is None or age == 0:
+                errors.append("Age is required and must be between 1 and 105.")
+
+            if gender is None:
+                errors.append("Gender is required.")
+
+            if not phone.strip():
+                errors.append("Phone Number is required.")
+            elif not re.fullmatch(r"^[6-9]\d{9}$", phone.strip()):
+                errors.append("Phone Number must be exactly 10 digits and start with 6, 7, 8, or 9.")
+
+            if not disease.strip():
+                errors.append("Disease / Condition is required.")
+            elif not re.fullmatch(r"[A-Za-z0-9\s,-]+", disease.strip()):
+                errors.append("Disease can only contain letters, numbers, spaces, commas, and hyphens.")
+            elif disease != disease.strip():
+                errors.append("Disease should not have leading or trailing spaces.")
+
+            if visit_date < date.today():
+                errors.append("Visit Date cannot be in the past.")
+
+            if not pre_medi.strip():
+                errors.append("Prescribed Medication is required.")
+            elif not re.fullmatch(r"[A-Za-z0-9\s,]+", pre_medi.strip()):  # Allow letters, numbers, spaces, comma
+                errors.append("Medication can only contain letters, numbers, spaces, and commas.")
+            elif pre_medi != pre_medi.strip():
+                errors.append("Medication should not have leading or trailing spaces.")
+
+                # Rule 8: Next Visit Date
+            if next_visit_date <= visit_date:
+                errors.append("Next Visit Date must be after the Visit Date.")
+                # --- End Validation Block ---
+
+                # --- (3) DECISION BLOCK (FIXED) ---
+            if errors:
+                # If the list has errors, display them all
+                for error in errors:
+                    st.error(f"⚠️ {error}")
             else:
-                prescribed_medication = [pm.strip() for pm in pre_medi.split(",") if pm.strip()]
+                # ALL VALIDATIONS PASSED - Proceed to add patient
+                prescribed_medication = [pm.strip() for pm in pre_medi.strip().split(",") if pm.strip()]
                 patient_data = {
-                    "name": name,
+                    "name": name.strip(),
                     "age": age,
                     "gender": gender,
-                    "phone": phone,
-                    "disease": disease,
+                    "phone": phone.strip(),
+                    "disease": disease.strip(),
                     "visit_date": str(visit_date),
                     "prescribed_medication": prescribed_medication,
                     "next_visit_date": str(next_visit_date),
                 }
+
                 try:
                     response = requests.post(API_URL + "/patient", json=patient_data)
                     if response.status_code in (200, 201):
-                        st.success(f"Patient {name} added successfully!")
+                        st.success(f"Patient {name.strip()} added successfully!")
+                        # You can optionally add time.sleep(1) and st.rerun() here
+                        # to clear the form fields on success.
                     else:
-                        st.error(f"Error adding patient {response.text}")
-                except Exception as e:
+                        st.error(f"Error from API: {response.text}")
+                except requests.exceptions.RequestException as e:
                     st.error(f"Error connecting to API: {e}")
 
 elif menu == "Dashboard":
@@ -1125,8 +1154,8 @@ elif menu == "Patient List":
                 with st.form(f"edit_form_{patient_to_edit['_id']}"):
                     st.subheader(f"✏️ Edit Details for {patient_to_edit['name']}")
                     name = st.text_input("Name", value=patient_to_edit["name"])
-                    age = st.number_input("Age", min_value=0, max_value=120, value=patient_to_edit["age"])
-                    gender = st.selectbox("Gender", ["Male", "Female"],index=0 if patient_to_edit["gender"] == "Male" else 1)
+                    age = st.number_input("Age", min_value=1, max_value=105, value=patient_to_edit["age"])
+                    gender = st.selectbox("Gender", ["Male", "Female","Other"],index=["Male", "Female", "Other"].index(patient_to_edit["gender"]) if patient_to_edit["gender"] in ["Male", "Female", "Other"] else 0)
                     phone = st.text_input("Phone", value=patient_to_edit["phone"])
                     disease = st.text_input("Disease", value=patient_to_edit["disease"])
                     try:
@@ -1149,25 +1178,73 @@ elif menu == "Patient List":
                         cancel_edit = st.form_submit_button("Cancel")
 
                     if submit_edit:
-                        updated_data = {
-                                "name": name,
+                        errors = []
+
+                        # Validate Name
+                        if not name.strip():
+                            errors.append("Patient Name is required.")
+                        elif not re.fullmatch(r"[A-Za-z\s]+", name.strip()):
+                            errors.append("Patient Name can only contain letters and spaces.")
+                        elif name != name.strip():
+                            errors.append("Patient Name should not have leading or trailing spaces.")
+
+                        # Validate Age
+                        if age <= 0:
+                            errors.append("Age must be greater than 0.")
+
+                        # Validate Phone
+                        if not phone.strip():
+                            errors.append("Phone Number is required.")
+                        elif not re.fullmatch(r"^[6-9]\d{9}$", phone.strip()):
+                            errors.append("Phone Number must be exactly 10 digits and start with 6, 7, 8, or 9.")
+
+                        # Validate Disease
+                        if not disease.strip():
+                            errors.append("Disease / Condition is required.")
+                        elif not re.fullmatch(r"[A-Za-z0-9\s,-]+", disease.strip()):
+                            errors.append("Disease can only contain letters, numbers, spaces, commas, and hyphens.")
+                        elif disease != disease.strip():
+                            errors.append("Disease should not have leading or trailing spaces.")
+
+                        # Validate Medication
+                        if not prescribed_medication.strip():
+                            errors.append("Prescribed Medication is required.")
+                        elif not re.fullmatch(r"[A-Za-z0-9\s,]+", prescribed_medication.strip()):
+                            errors.append("Medication can only contain letters, numbers, spaces, and commas.")
+                        elif prescribed_medication != prescribed_medication.strip():
+                            errors.append("Medication should not have leading or trailing spaces.")
+
+                        # Validate Date
+                        if next_visit_date <= visit_date:
+                            errors.append("Next Visit Date must be after the Visit Date.")
+                        # --- End Validation Block ---
+
+                        # --- (4) DECISION BLOCK ---
+                        if errors:
+                            for error in errors:
+                                st.error(f"⚠️ {error}")
+                        else:
+                            # Validation passed, proceed with API call
+                            updated_data = {
+                                "name": name.strip(),
                                 "age": age,
                                 "gender": gender,
-                                "phone": phone,
-                                "disease": disease,
+                                "phone": phone.strip(),
+                                "disease": disease.strip(),
                                 "visit_date": str(visit_date),
-                                "prescribed_medication": [pm.strip() for pm in prescribed_medication.split(",")],
+                                "prescribed_medication": [pm.strip() for pm in prescribed_medication.strip().split(",")
+                                                          if pm.strip()],
                                 "next_visit_date": str(next_visit_date)
                             }
-                        update_response = requests.put(
+                            update_response = requests.put(
                                 f"{API_URL}/patient/{patient_to_edit['_id']}", json=updated_data
                             )
-                        if update_response.status_code in (200, 201):
-                            st.success(f"✅ {name} updated successfully!")
-                            st.session_state.edit_patient_id = None
-                            st.rerun()
-                        else:
-                            st.error("Failed to update patient details.")
+                            if update_response.status_code in (200, 201):
+                                st.success(f"✅ {name.strip()} updated successfully!")
+                                st.session_state.edit_patient_id = None
+                                st.rerun()
+                            else:
+                                st.error(f"Failed to update patient details: {update_response.text}")
 
                     if cancel_edit:
                         st.session_state.edit_patient_id = None
