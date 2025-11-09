@@ -67,6 +67,15 @@ if "patient_list_page" not in st.session_state:
     st.session_state.patient_list_page = 0
 if "edit_patient_id" not in st.session_state:
     st.session_state.edit_patient_id = None
+if "patient_to_delete_id" not in st.session_state:
+    st.session_state.patient_to_delete_id = None
+if "confirm_logout" not in st.session_state:
+    st.session_state.confirm_logout = False
+if "menu_selection" not in st.session_state:
+    st.session_state.menu_selection = "Dashboard"
+
+def set_menu_to_dashboard():
+    st.session_state.menu_selection = "Dashboard"
 
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
 
@@ -213,6 +222,7 @@ hide_default_format = """
             border-radius: 10px !important;
             color: #333333 !important;
             padding: 10px !important;
+            caret-color: black !important;
         }
         
         /* NUMBER INPUT - Comprehensive Fix */
@@ -402,25 +412,41 @@ hide_default_format = """
             overflow: hidden;
         }
 
-        /* Success/Error/Warning Messages */
-        .stSuccess {
-            background-color: #D4EDDA !important;
-            color: #155724 !important;
-            border: 1px solid #C3E6CB !important;
-        }
+       /* --- REFACTORED ALERTS: Full width & high contrast --- */
 
-        .stError {
-            background-color: #F8D7DA !important;
-            color: #721C24 !important;
-            border: 1px solid #F5C6CB !important;
-        }
+        /* Base style for ALL alerts */
+       .stSuccess, .stError, .stWarning {
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        margin-top: 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        max-width: 400px; /* Center alerts */
+        margin-left: auto;
+        margin-right: auto;
+    }
 
-        .stWarning {
-            background-color: #FFF3CD !important;
-            color: #856404 !important;
-            border: 1px solid #FFEAA7 !important;
-        }
+    .stSuccess {
+        background-color: #D4EDDA !important;
+        color: #155724 !important;
+        border: 1px solid #C3E6CB !important;
+    }
 
+    .stError {
+        background-color: #F8D7DA !important;
+        color: #721C24 !important;
+        border: 1px solid #F5C6CB !important;
+    }
+
+    .stWarning {
+        background-color: #FFF3CD !important;
+        color: #856404 !important;
+        border: 1px solid #FFEAA7 !important;
+    }
+
+    [data-testid="stAlert"] * {
+        color: #856404 !important; /* Fix for warning text color */
+    }
         .stInfo {
             background-color: #D1ECF1 !important;
             color: #0C5460 !important;
@@ -434,18 +460,134 @@ hide_default_format = """
             background: linear-gradient(90deg, transparent, #CED4DA, transparent);
             margin: 30px 0;
         }
+/* File Uploader Improvements */
+[data-testid="stFileUploader"] {
+    background: rgba(20, 184, 166, 0.05) !important;
+    border: 2px dashed #14b8a6 !important;
+    border-radius: 10px !important;
+    padding: 20px !important;
+}
 
-        /* File Uploader */
-        [data-testid="stFileUploader"] {
-            background: white;
-            border: 2px dashed green;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        [data-testid="stFileUploader"] * {
-            color: white;
-        }
+/* File uploader label - "Upload your CSV file" */
+[data-testid="stFileUploader"] label {
+    color: #0a1e2b !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+}
 
+/* File uploader section */
+[data-testid="stFileUploader"] section {
+    background: transparent !important;
+}
+
+/* File uploader button (Browse files) */
+[data-testid="stFileUploader"] button {
+    background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-testid="stFileUploader"] button:hover {
+    background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 15px rgba(20, 184, 166, 0.4) !important;
+}
+
+/* File name display area */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderDropzone"] {
+    background: rgba(13, 27, 42, 0.5) !important;
+    border: 1px solid rgba(20, 184, 166, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+}
+
+/* Uploaded file info container */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] {
+    background: rgba(20, 184, 166, 0.1) !important;
+    border: 1px solid #14b8a6 !important;
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+    margin: 10px 0 !important;
+}
+
+/* File name text - prevent truncation */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFileName"] {
+    color: #14b8a6 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: 100% !important;
+}
+
+/* File size text */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFileSize"] {
+    color: #a7f3d0 !important;
+    font-size: 13px !important;
+}
+
+/* Delete button (X) for uploaded files */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderDeleteBtn"] button {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #ef4444 !important;
+    border: 1px solid #ef4444 !important;
+    border-radius: 5px !important;
+    padding: 5px 10px !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-testid="stFileUploader"] [data-testid="stFileUploaderDeleteBtn"] button:hover {
+    background: #ef4444 !important;
+    color: white !important;
+}
+
+/* Upload icon styling */
+[data-testid="stFileUploader"] svg {
+    color: #14b8a6 !important;
+}
+
+/* Drag and drop text */
+[data-testid="stFileUploader"] small {
+    color: #a7f3d0 !important;
+    font-size: 13px !important;
+}
+
+/* Large text in drop zone */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderDropzone"] > div > div {
+    color: #e8f5f7 !important;
+}
+
+/* Validation message styling */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFileName"] {
+    color: #14b8a6 !important; /* Default valid color (teal) */
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: 100% !important;
+}
+
+/* Invalid file - red color for warning */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFile"].invalid [data-testid="stFileUploaderFileName"],
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFileName"].invalid {
+    color: #ef4444 !important; /* Red for invalid files */
+}
+
+/* You can also style the entire file container for invalid files */
+[data-testid="stFileUploader"] [data-testid="stFileUploaderFile"].invalid {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border: 1px solid #ef4444 !important;
+}
         /* Tabs */
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
@@ -699,56 +841,80 @@ menu = st.sidebar.radio(
     "Select View:",
     ["Dashboard", "Add Patients", "Patient List", "Start Patient Follow-Up", "Patient Feedback", "Analytics",
      "Appointments", "Logout"],
-    label_visibility="visible",
+    label_visibility="visible",key="menu_selection"
 )
 
 st.sidebar.divider()
+if menu != "Patient List":
+    st.session_state.patient_list_page = 0
 
 if menu == "Add Patients":
     st.subheader("📂 Upload or Add Patients")
-    uploaded_file = st.file_uploader("Upload your CSV file", type="csv")
+    if "file_uploader_key" not in st.session_state:
+        st.session_state.file_uploader_key = 0
+
+    uploaded_file = st.file_uploader("Upload your CSV file", type="csv",key=f"file_uploader_{st.session_state.file_uploader_key}")
+
     if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-        st.success("Patient data uploaded successfully!")
-        st.dataframe(df)
+        # Validate file type
+        if not uploaded_file.name.endswith('.csv'):
+            st.error(f"❌ {uploaded_file.name} - Only CSV files are allowed. Text/plain files are not supported.")
+        else:
+            try:
+                df = pd.read_csv(uploaded_file)
+                st.success(f"✓ {uploaded_file.name} - Patient data uploaded successfully!")
+                st.dataframe(df)
 
-        if st.button("Add Uploaded Data to Database"):
-            success_count = 0
-            fail_count = 0
+                if st.button("Add Uploaded Data to Database"):
+                    success_count = 0
+                    fail_count = 0
 
-            for _, row in df.iterrows():
-                prescribed_medication = []
-                if "prescribed_medication" in df.columns:
-                    meds = row.get("prescribed_medication", "")
-                    prescribed_medication = [m.strip() for m in str(meds).split(",") if m.strip()]
+                    for _, row in df.iterrows():
+                        prescribed_medication = []
+                        if "prescribed_medication" in df.columns:
+                            meds = row.get("prescribed_medication", "")
+                            prescribed_medication = [m.strip() for m in str(meds).split(",") if m.strip()]
 
-                patient_data = {
-                    "name": row.get("name", ""),
-                    "age": int(row.get("age", 0)),
-                    "gender": row.get("gender", ""),
-                    "phone": str(row.get("phone", "")),
-                    "disease": row.get("disease", ""),
-                    "visit_date": str(row.get("visit_date", "")),
-                    "prescribed_medication": prescribed_medication,
-                    "next_visit_date": str(row.get("next_visit_date", "")),
-                }
+                        patient_data = {
+                            "name": row.get("name", ""),
+                            "age": int(row.get("age", 0)),
+                            "gender": row.get("gender", ""),
+                            "phone": str(row.get("phone", "")),
+                            "disease": row.get("disease", ""),
+                            "visit_date": str(row.get("visit_date", "")),
+                            "prescribed_medication": prescribed_medication,
+                            "next_visit_date": str(row.get("next_visit_date", "")),
+                        }
 
-                try:
-                    response = requests.post(API_URL + "/patient", json=patient_data)
-                    if response.status_code in (200, 201):
-                        success_count += 1
-                    else:
-                        fail_count += 1
-                except Exception as e:
-                    fail_count += 1
-                    print("Error:", e)
+                        try:
+                            response = requests.post(API_URL + "/patient", json=patient_data)
+                            if response.status_code in (200, 201):
+                                success_count += 1
+                            else:
+                                fail_count += 1
+                        except Exception as e:
+                            fail_count += 1
+                            print("Error:", e)
 
-            st.success(f"✅ {success_count} patients added successfully!")
-            if fail_count:
-                st.warning(f"⚠️ {fail_count} records failed to upload. Check formatting or API connection.")
+                    st.success(f"✅ {success_count} patients added successfully!")
+                    if fail_count:
+                        st.warning(f"⚠️ {fail_count} records failed to upload. Duplication of data.")
+                    st.session_state.file_uploader_key += 1
+                    time.sleep(2)  # Give user time to see success message
+                    st.rerun()
+
+
+            except pd.errors.EmptyDataError:
+                st.error("❌ The uploaded file is empty. Please upload a valid CSV file.")
+            except pd.errors.ParserError:
+                st.error("❌ Unable to parse the file. Please ensure it's a properly formatted CSV file.")
+            except Exception as e:
+                st.error(f"❌ Error reading file: {str(e)}")
 
     st.subheader("Add Patients Details")
-    with st.form("add_patient_form"):
+    if "form_key" not in st.session_state:
+        st.session_state.form_key = 0
+    with st.form(key=f"add_patient_form_{st.session_state.form_key}"):
         name = st.text_input("Patient Name")
         age = st.number_input("Age", min_value=0, max_value=105,value=0,placeholder="Enter your age(0-105)")
         gender = st.selectbox("Gender", ["Male", "Female"], index=0)
@@ -823,10 +989,16 @@ if menu == "Add Patients":
                     response = requests.post(API_URL + "/patient", json=patient_data)
                     if response.status_code in (200, 201):
                         st.success(f"Patient {name.strip()} added successfully!")
-                        # You can optionally add time.sleep(1) and st.rerun() here
-                        # to clear the form fields on success.
+                        st.session_state.form_key += 1
+                        time.sleep(1.5)  # Give user time to see success message
+                        st.rerun()
+
                     else:
-                        st.error(f"Error from API: {response.text}")
+                        try:
+                            error_data = response.json()
+                            st.error(f"Error: {error_data['detail']}")
+                        except:
+                            st.error(f"Error from API: {response.text}")
                 except requests.exceptions.RequestException as e:
                     st.error(f"Error connecting to API: {e}")
 
@@ -1117,16 +1289,20 @@ elif menu == "Patient List":
 
             if edit_btn:
                 st.session_state.edit_patient_id = patient["_id"]
+                st.session_state.patient_to_delete_id = None
                 st.rerun()
 
             if delete_btn:
-                delete_response = requests.delete(f"{API_URL}/patient/{patient['_id']}")
-                if delete_response.status_code in (200, 204):
-                    st.warning(f"🗑️ Deleted {patient['name']} successfully!")
-                    st.session_state.edit_patient_id = None
-                    st.rerun()
-                else:
-                    st.error("❌ Failed to delete patient.")
+                st.session_state.patient_to_delete_id = patient["_id"]
+                st.session_state.edit_patient_id = None
+                st.rerun()
+                # delete_response = requests.delete(f"{API_URL}/patient/{patient['_id']}")
+                # if delete_response.status_code in (200, 204):
+                #     st.warning(f"🗑️ Deleted {patient['name']} successfully!")
+                #     st.session_state.edit_patient_id = None
+                #     st.rerun()
+                # else:
+                #     st.error("❌ Failed to delete patient.")
 
         st.markdown("---")
         nav_cols = st.columns([1, 2, 1])
@@ -1144,32 +1320,117 @@ elif menu == "Patient List":
             if st.button("Next ➡️", use_container_width=True, disabled=(current_page >= total_pages - 1)):
                 st.session_state.patient_list_page += 1
                 st.rerun()
+        if st.session_state.patient_to_delete_id:
+            # Find the patient's details to show their name
+            patient_to_delete = next(
+                (p for p in patients if p["_id"] == st.session_state.patient_to_delete_id),
+                None
+            )
+
+            if patient_to_delete:
+                st.markdown("---")
+                # Show the confirmation message
+                st.error(
+                    f"Are you sure you want to permanently delete the record for **{patient_to_delete['name']}**?\n\n"
+                    "This action cannot be undone."
+                )
+
+                # Show confirmation and cancel buttons
+                col_confirm, col_cancel, _ = st.columns([1, 1, 2])  # Add extra col for spacing
+                with col_confirm:
+                    if st.button("YES, PERMANENTLY DELETE", key="confirm_delete_btn", use_container_width=True):
+                        # User confirmed. Now, perform the deletion.
+                        try:
+                            delete_response = requests.delete(f"{API_URL}/patient/{patient_to_delete['_id']}")
+                            if delete_response.status_code in (200, 204):
+                                st.success(f"🗑️ Deleted {patient_to_delete['name']} successfully!")
+                            else:
+                                st.error(f"❌ Failed to delete patient. API Error: {delete_response.text}")
+                        except Exception as e:
+                            st.error(f"❌ Failed to delete patient. Connection Error: {e}")
+
+                        # Reset the state and rerun
+                        st.session_state.patient_to_delete_id = None
+                        st.session_state.edit_patient_id = None
+                        st.rerun()
+
+                with col_cancel:
+                    if st.button("CANCEL", key="cancel_delete_btn", use_container_width=True):
+                        # User cancelled. Just reset the state and rerun.
+                        st.session_state.patient_to_delete_id = None
+                        st.rerun()
+            else:
+                # Patient not found (e.g., deleted in another session), just reset state
+                st.session_state.patient_to_delete_id = None
+                st.rerun()
 
         if st.session_state.edit_patient_id:
             st.markdown("---")
             patient_to_edit = next(
-                    (p for p in patients if p["_id"] == st.session_state.edit_patient_id),
-                    None)
+                (p for p in patients if p["_id"] == st.session_state.edit_patient_id),
+                None
+            )
             if patient_to_edit:
+
+                # --- Start: Add logic to check if visit date is in the past ---
+                is_visit_date_past = False
+                visit_date_default = date.today()
+
+                try:
+                    # Try to parse the stored visit date string
+                    visit_date_default = datetime.strptime(patient_to_edit["visit_date"], "%Y-%m-%d").date()
+
+                    # Check if the parsed date is strictly before today
+                    if visit_date_default < date.today():
+                        is_visit_date_past = True
+
+                except (ValueError, TypeError):
+                    # Handle cases where date string is invalid, None, or empty
+                    # Default to today, and is_visit_date_past remains False
+                    visit_date_default = date.today()
+
+                # Parse next visit date (for default value)
+                try:
+                    next_visit_default = datetime.strptime(patient_to_edit["next_visit_date"], "%Y-%m-%d").date()
+                except (ValueError, TypeError):
+                    next_visit_default = None
+                # --- End: Date check logic ---
+
                 with st.form(f"edit_form_{patient_to_edit['_id']}"):
                     st.subheader(f"✏️ Edit Details for {patient_to_edit['name']}")
+
+                    # --- Add a specific warning if field is disabled ---
+                    if is_visit_date_past:
+                        st.warning(
+                            "This record's visit date is in the past. The Visit Date field is locked.")
+
                     name = st.text_input("Name", value=patient_to_edit["name"])
-                    age = st.number_input("Age", min_value=1, max_value=105, value=patient_to_edit["age"])
-                    gender = st.selectbox("Gender", ["Male", "Female","Other"],index=["Male", "Female", "Other"].index(patient_to_edit["gender"]) if patient_to_edit["gender"] in ["Male", "Female", "Other"] else 0)
+                    age = st.number_input("Age", min_value=0, max_value=120, value=patient_to_edit["age"])
+                    gender = st.selectbox(
+                        "Gender", ["Male", "Female"],
+                        index=0 if patient_to_edit["gender"] == "Male" else 1
+                    )
                     phone = st.text_input("Phone", value=patient_to_edit["phone"])
                     disease = st.text_input("Disease", value=patient_to_edit["disease"])
-                    try:
-                        visit_date_default = datetime.strptime(patient_to_edit["visit_date"], "%Y-%m-%d").date()
-                    except:
-                        visit_date_default = date.today()
-                    visit_date = st.date_input("Visit Date", value=visit_date_default)
-                    prescribed_medication = st.text_area("Prescribed Medication (comma-separated)",value=", ".join(patient_to_edit["prescribed_medication"]))
-                    try:
-                        next_visit_default = datetime.strptime(patient_to_edit["next_visit_date"],
-                                                                   "%Y-%m-%d").date()
-                    except:
-                        next_visit_default = None
-                    next_visit_date = st.date_input("Next Visit Date", value=next_visit_default)
+
+                    # --- Apply the 'disabled' attribute ONLY to Visit Date ---
+                    visit_date = st.date_input(
+                        "Visit Date",
+                        value=visit_date_default,
+                        disabled=is_visit_date_past  # <-- Correct
+                    )
+
+                    prescribed_medication = st.text_area(
+                        "Prescribed Medication",
+                        value=", ".join(patient_to_edit["prescribed_medication"])
+                    )
+
+                    # --- 'disabled' attribute REMOVED from Next Visit Date ---
+                    next_visit_date = st.date_input(
+                        "Next Visit Date",
+                        value=next_visit_default
+                        # No 'disabled' parameter here
+                    )
 
                     col_update, col_cancel = st.columns(2)
                     with col_update:
@@ -1178,77 +1439,39 @@ elif menu == "Patient List":
                         cancel_edit = st.form_submit_button("Cancel")
 
                     if submit_edit:
-                        errors = []
-
-                        # Validate Name
-                        if not name.strip():
-                            errors.append("Patient Name is required.")
-                        elif not re.fullmatch(r"[A-Za-z\s]+", name.strip()):
-                            errors.append("Patient Name can only contain letters and spaces.")
-                        elif name != name.strip():
-                            errors.append("Patient Name should not have leading or trailing spaces.")
-
-                        # Validate Age
-                        if age <= 0:
-                            errors.append("Age must be greater than 0.")
-
-                        # Validate Phone
-                        if not phone.strip():
-                            errors.append("Phone Number is required.")
-                        elif not re.fullmatch(r"^[6-9]\d{9}$", phone.strip()):
-                            errors.append("Phone Number must be exactly 10 digits and start with 6, 7, 8, or 9.")
-
-                        # Validate Disease
-                        if not disease.strip():
-                            errors.append("Disease / Condition is required.")
-                        elif not re.fullmatch(r"[A-Za-z0-9\s,-]+", disease.strip()):
-                            errors.append("Disease can only contain letters, numbers, spaces, commas, and hyphens.")
-                        elif disease != disease.strip():
-                            errors.append("Disease should not have leading or trailing spaces.")
-
-                        # Validate Medication
-                        if not prescribed_medication.strip():
-                            errors.append("Prescribed Medication is required.")
-                        elif not re.fullmatch(r"[A-Za-z0-9\s,]+", prescribed_medication.strip()):
-                            errors.append("Medication can only contain letters, numbers, spaces, and commas.")
-                        elif prescribed_medication != prescribed_medication.strip():
-                            errors.append("Medication should not have leading or trailing spaces.")
-
-                        # Validate Date
-                        if next_visit_date <= visit_date:
-                            errors.append("Next Visit Date must be after the Visit Date.")
-                        # --- End Validation Block ---
-
-                        # --- (4) DECISION BLOCK ---
-                        if errors:
-                            for error in errors:
-                                st.error(f"⚠️ {error}")
+                        # When a field is disabled, Streamlit submits its 'value' parameter.
+                        # This means `str(visit_date)` will correctly submit the original, unchanged date.
+                        updated_data = {
+                            "name": name,
+                            "age": age,
+                            "gender": gender,
+                            "phone": phone,
+                            "disease": disease,
+                            "visit_date": str(visit_date),
+                            "prescribed_medication": [pm.strip() for pm in prescribed_medication.split(",")],
+                            "next_visit_date": str(next_visit_date)
+                        }
+                        update_response = requests.put(
+                            f"{API_URL}/patient/{patient_to_edit['_id']}", json=updated_data
+                        )
+                        if update_response.status_code in (200, 201):
+                            st.success(f"✅ {name} updated successfully!")
+                            st.session_state.edit_patient_id = None
+                            st.rerun()
                         else:
-                            # Validation passed, proceed with API call
-                            updated_data = {
-                                "name": name.strip(),
-                                "age": age,
-                                "gender": gender,
-                                "phone": phone.strip(),
-                                "disease": disease.strip(),
-                                "visit_date": str(visit_date),
-                                "prescribed_medication": [pm.strip() for pm in prescribed_medication.strip().split(",")
-                                                          if pm.strip()],
-                                "next_visit_date": str(next_visit_date)
-                            }
-                            update_response = requests.put(
-                                f"{API_URL}/patient/{patient_to_edit['_id']}", json=updated_data
-                            )
-                            if update_response.status_code in (200, 201):
-                                st.success(f"✅ {name.strip()} updated successfully!")
-                                st.session_state.edit_patient_id = None
-                                st.rerun()
-                            else:
-                                st.error(f"Failed to update patient details: {update_response.text}")
+                            st.error("Failed to update patient details.")
 
                     if cancel_edit:
                         st.session_state.edit_patient_id = None
                         st.rerun()
+            else:
+                st.error(f"Failed to fetch patient data. Status Code: {response.status_code}")
+                try:
+                            # Try to show the detailed error message from the API
+                    st.error(f"Backend Response: {response.json()}")
+                except:
+                            # Fallback if the response isn't JSON
+                    st.error(f"Backend Response: {response.text}")
 
 elif menu == "Start Patient Follow-Up":
     st.subheader("📞 Start Patient Follow-Up")
@@ -1768,7 +1991,25 @@ elif menu == "Analytics":
         pass
 
 elif menu == "Logout":
-    st.session_state.clear()
-    st.success("You have been logged out successfully.")
-    time.sleep(1)
-    st.switch_page("ui_file.py")
+    st.subheader("🔒 Confirm Logout")
+    st.warning("Are you sure you want to log out?")
+
+    # Use columns for side-by-side buttons
+    col1, col2, col_spacer = st.columns([1.5, 1, 5])
+
+    with col1:
+        if st.button("Confirm Logout", type="primary"):
+            # This is the original logout logic
+            st.session_state.clear()
+            st.success("You have been logged out successfully.")
+            time.sleep(1)
+            st.switch_page("ui_file.py")
+
+    with col2:
+        # --- THIS IS THE FIX ---
+        # Use the on_click callback. This runs *before* the script reruns.
+        # No 'if' or 'st.rerun()' is needed.
+        st.button(
+            "Cancel",
+            on_click=set_menu_to_dashboard  # <-- Pass the function here
+        )
