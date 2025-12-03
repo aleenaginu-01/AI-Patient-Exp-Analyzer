@@ -1484,7 +1484,7 @@ elif menu == "Start Patient Follow-Up":
 
         # --- 1. TIMEOUT CHECK (NEW) ---
         # Check if 3 minutes (180s) have passed without completion
-        if (time.time() - start_time) > 180:
+        if (time.time() - start_time) > 240:
             st.error(
                 f"Call monitor timed out for {patient_name}. The call may have failed or was not answered. Resetting.")
             # Clear state and reset
